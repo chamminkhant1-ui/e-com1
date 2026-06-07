@@ -18,6 +18,8 @@ const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 // add cors
 
+// trust poxy
+app.set('trust proxy', 1);
 app.use(express.json({ extended: true }));
 app.use(express.urlencoded({ extended: true }));
 // app.set('query parser', 'extended');
