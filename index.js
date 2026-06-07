@@ -17,6 +17,8 @@ const { rateLimit } = require('express-rate-limit');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 // add cors
+connectDB();
+redisClient.connect();
 
 // trust poxy
 app.set('trust proxy', 1);
@@ -45,11 +47,13 @@ app.use(notFound);
 // global error handler
 app.use(errorHandler);
 
-app.listen(process.env.PORT || 3000, () => {
-  connectDB();
-  redisClient.connect();
-  console.log('running on port ' + process.env.PORT);
-});
+if (!process.env.vercel) {
+  app.listen(process.env.PORT || 3000, () => {
+    console.log('running on port ' + process.env.PORT);
+  });
+}
+
+module.exports = app;
 
 // async global error handler
 process.on('unhandledRejection', (err) => {
