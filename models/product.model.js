@@ -30,6 +30,11 @@ const productSchema = new mongoose.Schema(
         message: 'Stock cannot be negative',
       },
     },
+    filename: {
+      type: String,
+      required: false,
+      unique: true,
+    },
   },
   { timestamps: true },
 );

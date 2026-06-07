@@ -8,7 +8,7 @@ const redisKey = require('../utils/redisKey');
 // 1. create product
 exports.createProduct = asyncHandler(async (req, res, next) => {
   const { name, description, price, stock } = req.body;
-
+  console.log(req.file);
   if (!name || !description || price === undefined || stock === undefined) {
     return next(new AppError('All fields are required', 400));
   }
@@ -18,6 +18,7 @@ exports.createProduct = asyncHandler(async (req, res, next) => {
     description,
     price,
     stock,
+    filename: req.file ? req.file.filename : undefined,
   });
 
   const savedProduct = await product.save();
