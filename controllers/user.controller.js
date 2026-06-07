@@ -2,7 +2,7 @@ const asyncHandler = require('express-async-handler');
 const User = require('../models/user.model');
 const redisClient = require('../config/redisClient');
 const redisKey = require('../utils/redisKey');
-const AppError = require('../utils/appError');
+const AppError = require('../utils/AppError');
 const mongoose = require('mongoose');
 
 // getAllUsers

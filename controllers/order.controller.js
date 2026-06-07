@@ -1,7 +1,7 @@
 const Order = require('../models/order.model');
 const User = require('../models/user.model');
 const asyncHandler = require('express-async-handler');
-const AppError = require('../utils/appError');
+const AppError = require('../utils/AppError');
 const Product = require('../models/product.model');
 
 // {products: [{ product: 1, quantity: 2 }, { product: 2, quantity: 1 }]} = req.body
