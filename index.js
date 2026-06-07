@@ -17,8 +17,7 @@ const { rateLimit } = require('express-rate-limit');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 // add cors
-connectDB();
-redisClient.connect();
+
 
 // trust poxy
 app.set('trust proxy', 1);
@@ -26,7 +25,8 @@ app.use(express.json({ extended: true }));
 app.use(express.urlencoded({ extended: true }));
 // app.set('query parser', 'extended');
 app.use(cookieParser());
-
+connectDB();
+redisClient.connect();
 app.use(
   rateLimit({
     windowMs: 1 * 60 * 1000, // 15 minutes
