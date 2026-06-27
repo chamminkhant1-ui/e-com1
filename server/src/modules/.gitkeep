@@ -1,0 +1,9 @@
+// Feature modules go here.
+// Each module should contain: .routes.ts, .controller.ts, .service.ts, .schema.ts
+// Example structure:
+//   modules/
+//     user/
+//       user.routes.ts
+//       user.controller.ts
+//       user.service.ts
+//       user.schema.ts

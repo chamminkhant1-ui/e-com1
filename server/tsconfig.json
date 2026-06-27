@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "lib": ["ES2021"],
+    "target": "es2021",
+    "module": "CommonJS",
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "strict": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "skipLibCheck": true,
+    "noImplicitAny": true,
+    "forceConsistentCasingInFileNames": true,
+
+    // Required for TypeORM
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+
+    // Optional for better DX
+    "sourceMap": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

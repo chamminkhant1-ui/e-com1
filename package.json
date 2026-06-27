@@ -1,0 +1,17 @@
+{
+  "name": "new",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Fullstack project with Client and Server",
+  "scripts": {
+    "start:client": "npm run dev --prefix client",
+    "start:server": "npm run dev --prefix server",
+    "dev": "concurrently \"npm run start:client\" \"npm run start:server\"",
+    "install:all": "npm install && npm install --prefix client && npm install --prefix server",
+    "build:client": "npm run build --prefix client",
+    "build:server": "npm run build --prefix server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
