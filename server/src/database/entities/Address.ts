@@ -4,12 +4,14 @@ import {
   Column,
   ManyToOne,
   JoinColumn,
+  Unique,
 } from 'typeorm';
 import type { AddressType } from './types';
 import { Township } from './Township';
 import { StudentProfile } from './StudentProfile';
 
 @Entity({ name: 'addresses' })
+@Unique(['student', 'type'])
 export class Address {
   @PrimaryGeneratedColumn()
   id!: number;

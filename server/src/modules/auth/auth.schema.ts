@@ -8,7 +8,7 @@ const baseAccountFields = {
 };
 
 // 2. Define the Role Enum (for server-side validation/use)
-const AccountRole = z.enum(['student', 'teacher', 'admin', 'super']);
+const AccountRole = z.enum(['student', 'admin', 'super', 'owner']);
 export type AccountRoleType = z.infer<typeof AccountRole>;
 
 // 3. Create Schemas for API Requests

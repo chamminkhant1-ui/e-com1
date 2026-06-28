@@ -1,4 +1,4 @@
-export type Role = 'student' | 'teacher' | 'admin' | 'super' | 'owner';
+export type Role = 'student' | 'admin' | 'super' | 'owner';
 
 export type GenderType = 'M' | 'F' | 'Other';
 
@@ -11,3 +11,5 @@ export type RegistrationStatus =
   | 'deferred';
 
 export type AddressType = 'current' | 'parent' | 'office';
+
+export type ClaimStatus = 'unclaimed' | 'pending' | 'approved' | 'rejected';

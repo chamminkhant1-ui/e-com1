@@ -21,10 +21,10 @@ export class Account {
   @Column({ length: 100, unique: true })
   username!: string;
 
-  @Column({ length: 200, unique: true })
+  @Column({ length: 200, unique: true, nullable: true })
   email!: string;
 
-  @Column({ length: 200, name: 'edu_mail', unique: true })
+  @Column({ length: 200, name: 'edu_mail', unique: true, nullable: true })
   eduMail!: string;
 
   @Column({ type: 'text', name: 'password' })

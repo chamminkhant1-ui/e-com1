@@ -4,6 +4,7 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
   OneToOne,
   OneToMany,
   ManyToOne,
@@ -16,8 +17,9 @@ import { Account } from './Account';
 import { ParentProfile } from './ParentProfile';
 import { Address } from './Address';
 import { Photo } from './Photo';
-import { EntranceRegistration } from './EntranceRegistration';
+import { EntranceClaim } from './EntranceClaim';
 import { SemesterRegistration } from './SemesterRegistration';
+import { EntranceRegistration } from './EntranceRegistration';
 
 @Entity({ name: 'student_profiles' })
 @Index('idx_student_nrc', ['studentNrc'])
@@ -41,9 +43,6 @@ export class StudentProfile {
   })
   @JoinColumn({ name: 'entrance_id' })
   entrance?: EntranceRegistration;
-  // curently it is moany to one because one entrance registration can be claimed by many student profiles before approved one.
-  // If one is approved, other profiles will be deleted. so it will be one to one after approval.
-  // If one is already approved, other profiles will not be able to claim it. So it will be one to one after approval.
 
   @Column({
     length: 100,
@@ -51,7 +50,7 @@ export class StudentProfile {
     unique: true,
     nullable: true,
   })
-  universityRegNo?: string; // it's same in
+  universityRegNo?: string;
 
   @Column({ length: 255, name: 'name_mm' })
   nameMm!: string;
@@ -83,14 +82,8 @@ export class StudentProfile {
   @Column({ length: 255, name: 'high_school_name', nullable: true })
   highSchoolName?: string;
 
-  @Column({ length: 50, name: 'application_no', nullable: true })
-  applicationNo?: string;
-
   @Column({ name: 'entry_academic_year', length: 15, nullable: true })
   entryAcademicYear?: string;
-
-  @Column({ name: 'admission_serial', type: 'int', nullable: true })
-  admissionSerial?: number;
 
   @OneToOne(() => ParentProfile, (parent) => parent.student, { cascade: true })
   parentProfile!: ParentProfile;
@@ -101,11 +94,17 @@ export class StudentProfile {
   @OneToOne(() => Photo, (photo) => photo.student, { cascade: true })
   photo?: Photo;
 
+  @OneToMany(() => EntranceClaim, (claim) => claim.student)
+  entranceClaims?: EntranceClaim[];
+
   @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
   createdAt!: Date;
 
   @UpdateDateColumn({ type: 'timestamptz', name: 'updated_at' })
   updatedAt!: Date;
+
+  @DeleteDateColumn({ type: 'timestamptz', name: 'deleted_at' })
+  deletedAt?: Date;
 
   @OneToMany(() => SemesterRegistration, (reg) => reg.student)
   registrations?: SemesterRegistration[];
