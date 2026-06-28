@@ -23,9 +23,6 @@ export class Township {
   @Column({ length: 150, name: 'name_mm' })
   nameMm!: string;
 
-  @Column({ length: 150, name: 'name_en', nullable: true })
-  nameEn?: string;
-
   @ManyToOne(() => District, { onDelete: 'RESTRICT' })
   @JoinColumn([
     { name: 'state_id', referencedColumnName: 'stateId' },

@@ -20,9 +20,6 @@ export class District {
   @Column({ length: 150, name: 'name_mm' })
   nameMm!: string;
 
-  @Column({ length: 150, name: 'name_en', nullable: true })
-  nameEn?: string;
-
   @ManyToOne(() => State, (state) => state.districts, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'state_id' })
   state!: State;

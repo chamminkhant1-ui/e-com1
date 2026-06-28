@@ -9,9 +9,6 @@ export class State {
   @Column({ length: 150, name: 'name_mm' })
   nameMm!: string;
 
-  @Column({ length: 150, name: 'name_en', nullable: true })
-  nameEn?: string;
-
   @OneToMany(() => District, (district) => district.state)
   districts?: District[];
 }

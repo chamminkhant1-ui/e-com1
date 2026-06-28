@@ -6,6 +6,8 @@
   "scripts": {
     "start:client": "npm run dev --prefix client",
     "start:server": "npm run dev --prefix server",
+    "seed:loc": "npm run seed:loc --prefix server",
+    "seed:en": "npm run seed:en --prefix server",
     "dev": "concurrently \"npm run start:client\" \"npm run start:server\"",
     "install:all": "npm install && npm install --prefix client && npm install --prefix server",
     "build:client": "npm run build --prefix client",
