@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Navigate } from 'react-router-dom';
 import { LoginForm } from '@/features/auth/components/LoginForm';
-import { RegisterForm } from '@/features/auth/components/RegisterForm';
 import { OtpVerification } from '@/features/auth/components/OtpVerification';
 import { ForgotPasswordForm } from '@/features/auth/components/ForgotPasswordForm';
 import { ResetOtpForm } from '@/features/auth/components/ResetOtpForm';
@@ -11,7 +10,6 @@ import { getAuthenticatedHomePath } from '@/routes/authPaths';
 
 type AuthStep =
   | 'login'
-  | 'register'
   | 'otp'
   | 'forgot-password'
   | 'reset-otp'
@@ -28,7 +26,6 @@ interface AuthFlowState {
 
 const VALID_STEPS: AuthStep[] = [
   'login',
-  'register',
   'otp',
   'forgot-password',
   'reset-otp',
@@ -135,10 +132,6 @@ export const Login = () => {
 
   const { step, registeredEmail, resetEmail, resetOtp } = flowState;
 
-  const handleRegisterOtp = (email: string) => {
-    setFlowState({ step: 'otp', registeredEmail: email });
-  };
-
   const handleOtpVerified = () => {
     resetToLogin('Email verified successfully! You can now sign in.');
   };
@@ -162,22 +155,11 @@ export const Login = () => {
       <div className='flex w-full max-w-[340px] flex-col justify-center sm:max-w-[360px]'>
         {step === 'login' && (
           <LoginForm
-            onNavigateToRegister={() => {
-              setSuccessMessage('');
-              setFlowState({ step: 'register' });
-            }}
             onNavigateToForgotPassword={() => {
               setSuccessMessage('');
               setFlowState({ step: 'forgot-password' });
             }}
             successMessage={successMessage}
-          />
-        )}
-
-        {step === 'register' && (
-          <RegisterForm
-            onNavigateToLogin={() => resetToLogin()}
-            onNavigateToOtp={handleRegisterOtp}
           />
         )}
 

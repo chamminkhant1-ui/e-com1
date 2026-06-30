@@ -26,7 +26,10 @@ interface ForgotPasswordFormProps {
   onOtpSent: (email: string) => void;
 }
 
-export const ForgotPasswordForm = ({ onBack, onOtpSent }: ForgotPasswordFormProps) => {
+export const ForgotPasswordForm = ({
+  onBack,
+  onOtpSent,
+}: ForgotPasswordFormProps) => {
   const {
     register,
     handleSubmit,
@@ -50,7 +53,9 @@ export const ForgotPasswordForm = ({ onBack, onOtpSent }: ForgotPasswordFormProp
           setError('email', { message: apiError.errors.fieldErrors.email[0] });
         } else {
           setError('root', {
-            message: apiError.message || 'Failed to send reset code. Please try again.',
+            message:
+              apiError.message ||
+              'Failed to send reset code. Please try again.',
           });
         }
       },
@@ -71,29 +76,36 @@ export const ForgotPasswordForm = ({ onBack, onOtpSent }: ForgotPasswordFormProp
       <header className='mb-5 space-y-1.5'>
         <h1 className={authFormTitleClass}>Forgot password?</h1>
         <p className={authFormSubtitleClass}>
-          Enter your email and we'll send you a verification code to reset your password.
+          Enter your email and we'll send you a verification code to reset your
+          password.
         </p>
       </header>
 
       {/* Icon illustration */}
-      <div className='mb-5 flex justify-center'>
+      {/* <div className='mb-5 flex justify-center'>
         <div className='flex h-14 w-14 items-center justify-center rounded-full bg-primary-container/15'>
           <span className='material-symbols-outlined text-3xl text-primary-container'>
             lock_reset
           </span>
         </div>
-      </div>
+      </div> */}
 
       {errors.root && (
         <div className={authAlertErrorClass} role='alert'>
-          <span className='material-symbols-outlined text-lg text-on-error-container'>error</span>
-          <p className='text-sm font-medium text-on-error-container'>{errors.root.message}</p>
+          <span className='material-symbols-outlined text-lg text-on-error-container'>
+            error
+          </span>
+          <p className='text-sm font-medium text-on-error-container'>
+            {errors.root.message}
+          </p>
         </div>
       )}
 
       {forgotPasswordMutation.isSuccess && (
         <div className={authAlertSuccessClass} role='status'>
-          <span className='material-symbols-outlined text-lg text-green-600'>check_circle</span>
+          <span className='material-symbols-outlined text-lg text-green-600'>
+            check_circle
+          </span>
           <p className='text-sm font-medium text-green-700'>
             Reset code sent! Redirecting...
           </p>
@@ -106,7 +118,9 @@ export const ForgotPasswordForm = ({ onBack, onOtpSent }: ForgotPasswordFormProp
             Email address
           </label>
           <div className='group relative'>
-            <span className={`${authInputIconClass} material-symbols-outlined`}>mail</span>
+            <span className={`${authInputIconClass} material-symbols-outlined`}>
+              mail
+            </span>
             <input
               id='forgot-email'
               {...register('email')}
@@ -117,7 +131,9 @@ export const ForgotPasswordForm = ({ onBack, onOtpSent }: ForgotPasswordFormProp
             />
           </div>
           {errors.email && (
-            <p className='ml-0.5 mt-1 text-xs font-medium text-error'>{errors.email.message}</p>
+            <p className='ml-0.5 mt-1 text-xs font-medium text-error'>
+              {errors.email.message}
+            </p>
           )}
         </div>
 

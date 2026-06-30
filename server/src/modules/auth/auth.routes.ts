@@ -21,8 +21,21 @@ const authRateLimiter = rateLimit({
 });
 
 /**
+ * @route POST /api/v1/auth/verify-entrance
+ * @desc Read-only lookup of an entrance record for the first-year registration flow.
+ *       Returns a safe subset for confirmation without claiming the record.
+ * @access Public
+ */
+router.post(
+  "/verify-entrance",
+  authRateLimiter,
+  validate({ body: AccountSchema.verifyEntrance }),
+  authController.verifyEntrance
+);
+
+/**
  * @route POST /api/v1/auth/register
- * @desc Registers a new account, generates an OTP (which is hashed), and sends it to the user.
+ * @desc Registers a new account, re-verifies + claims the entrance record, generates an OTP (which is hashed), and sends it to the user.
  * @access Public
  */
 router.post(

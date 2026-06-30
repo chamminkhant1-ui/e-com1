@@ -9,9 +9,21 @@ import type {
   ForgotPasswordInput,
   VerifyResetOtpInput,
   ResetPasswordInput,
+  VerifyEntranceInput,
+  EntranceMatchInfo,
 } from '@/types/auth';
 
 const AUTH_URL = '/auth';
+
+export const verifyEntrance = async (
+  data: VerifyEntranceInput,
+): Promise<ApiResponse<EntranceMatchInfo>> => {
+  const res = await api.post<ApiResponse<EntranceMatchInfo>>(
+    `${AUTH_URL}/verify-entrance`,
+    data,
+  );
+  return res.data;
+};
 
 export const registerUser = async (data: RegisterInput): Promise<ApiResponse<User>> => {
   const res = await api.post<ApiResponse<User>>(`${AUTH_URL}/register`, data);

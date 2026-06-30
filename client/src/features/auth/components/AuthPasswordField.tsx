@@ -4,6 +4,7 @@ import {
   authFieldLabelClass,
   authInputIconClass,
   authInputWithToggleClass,
+  authInputErrorClass,
   authPasswordToggleClass,
 } from './authFormStyles';
 
@@ -24,6 +25,8 @@ export const AuthPasswordField = ({
 }: AuthPasswordFieldProps) => {
   const [showPassword, setShowPassword] = useState(false);
 
+  const hasError = Boolean(error);
+
   return (
     <div className="space-y-1.5">
       <label htmlFor={id} className={authFieldLabelClass}>
@@ -36,7 +39,7 @@ export const AuthPasswordField = ({
         <input
           id={id}
           {...registration}
-          className={authInputWithToggleClass}
+          className={`${authInputWithToggleClass} ${hasError ? authInputErrorClass : ''}`}
           type={showPassword ? 'text' : 'password'}
           autoComplete={autoComplete}
         />

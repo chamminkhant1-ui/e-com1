@@ -1,4 +1,5 @@
 import { useForm } from 'react-hook-form';
+import { Link } from 'react-router-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   loginSchema,
@@ -17,22 +18,17 @@ import {
   authFieldLabelClass,
   authFormTitleClass,
   authInputClass,
+  authInputErrorClass,
   authInputIconClass,
-  authModeSwitcherActiveClass,
-  authModeSwitcherInactiveClass,
-  authModeSwitcherTrackClass,
-  authModeSwitcherWrapClass,
   authSubmitButtonClass,
 } from './authFormStyles';
 
 interface LoginFormProps {
-  onNavigateToRegister: () => void;
   onNavigateToForgotPassword: () => void;
   successMessage?: string;
 }
 
 export const LoginForm = ({
-  onNavigateToRegister,
   onNavigateToForgotPassword,
   successMessage,
 }: LoginFormProps) => {
@@ -73,21 +69,6 @@ export const LoginForm = ({
 
   return (
     <AuthFormCard>
-      <div className={authModeSwitcherWrapClass}>
-        <div className={authModeSwitcherTrackClass}>
-          <button type='button' className={authModeSwitcherActiveClass}>
-            Login
-          </button>
-          <button
-            type='button'
-            onClick={onNavigateToRegister}
-            className={authModeSwitcherInactiveClass}
-          >
-            Register
-          </button>
-        </div>
-      </div>
-
       <header className='mb-5 text-center md:mb-6 md:text-left'>
         <h1 className={authFormTitleClass}>Welcome back</h1>
         <p className='mt-1 text-sm text-on-surface-variant'>
@@ -127,7 +108,7 @@ export const LoginForm = ({
             <input
               id='login-email'
               {...register('email')}
-              className={authInputClass}
+              className={`${authInputClass} ${errors.email ? authInputErrorClass : ''}`}
               type='email'
               autoComplete='email'
             />
@@ -187,17 +168,16 @@ export const LoginForm = ({
         </button>
       </form>
 
-      <div className='mt-6 border-t border-outline-variant/15 pt-5 text-center md:hidden'>
+      <div className='mt-6 border-t border-outline-variant/15 pt-5 text-center'>
         <p className='text-sm text-on-surface-variant'>
-          Don&apos;t have an account?
+          First-year student?{' '}
+          <Link
+            to='/first-year-registration'
+            className='font-bold text-primary-container hover:text-secondary'
+          >
+            Register here
+          </Link>
         </p>
-        <button
-          className='mt-1 text-sm font-bold text-primary-container hover:text-secondary'
-          type='button'
-          onClick={onNavigateToRegister}
-        >
-          Sign up
-        </button>
       </div>
     </AuthFormCard>
   );

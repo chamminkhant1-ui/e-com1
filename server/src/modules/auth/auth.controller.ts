@@ -11,6 +11,7 @@ import {
   AccountLoginInput,
   AccountRegisterInput,
   AccountResetOtpInput,
+  AccountVerifyEntranceInput,
   AccountVerifyOtpInput,
   AccountForgotPasswordInput,
   AccountVerifyResetOtpInput,
@@ -45,6 +46,22 @@ export class AuthController {
       message:
         'Registration successful. A 6-digit OTP code has been sent to your email for verification.',
       data: newAccount,
+    });
+  });
+
+  /**
+   * Read-only entrance lookup for the first-year registration flow.
+   * Returns a safe subset of the matched entrance record for confirmation.
+   */
+  verifyEntrance = asyncHandler(async (req: Request, res: Response) => {
+    const payload: AccountVerifyEntranceInput =
+      (req as any).validatedBody ?? req.body;
+    const match = await this.authService.verifyEntrance(payload);
+
+    res.status(200).json({
+      ok: true,
+      message: 'Entrance record found. Please confirm your details.',
+      data: match,
     });
   });
 

@@ -3,14 +3,18 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { BaseService } from '../../common/services/BaseService';
 import { Account } from '../../database/entities/Account';
+import { EntranceRegistration } from '../../database/entities/EntranceRegistration';
 import { AppDataSource } from '../../database/data-source';
 import {
   AccountLoginInput,
   AccountRegisterInput,
+  AccountVerifyEntranceInput,
   AccountVerifyOtpInput,
   AccountForgotPasswordInput,
   AccountVerifyResetOtpInput,
   AccountResetPasswordInput,
+  buildExamRollNo,
+  type EntranceMatchDto,
 } from './auth.schema';
 import { generateOtp, getOtpExpiration } from '../../common/utils/otp.utils';
 import AppError from '../../common/utils/AppError';
@@ -26,6 +30,7 @@ const hashOtp = (otp: string): string => {
 };
 
 export const AccountRepository = AppDataSource.getRepository(Account);
+const EntranceRepository = AppDataSource.getRepository(EntranceRegistration);
 
 export class AuthService extends BaseService<Account> {
   protected accountRepo: Repository<Account>;
@@ -38,11 +43,59 @@ export class AuthService extends BaseService<Account> {
   }
 
   /**
+   * Looks up an entrance record for the first-year registration flow.
+   * Read-only: does NOT mark the entrance as claimed. Returns a safe subset of
+   * the record so the user can confirm before creating an account.
+   */
+  async verifyEntrance(
+    data: AccountVerifyEntranceInput,
+  ): Promise<EntranceMatchDto> {
+    const examRollNo = buildExamRollNo(data.rollCode, data.rollNumber);
+
+    const entrance = await EntranceRepository.findOne({
+      where: {
+        examYear: data.examYear.trim(),
+        examRollNo,
+        fatherNameMm: data.fatherName.trim(),
+      },
+      select: [
+        'entranceId',
+        'applicantNameMm',
+        'fatherNameMm',
+        'examYear',
+        'examRollNo',
+        'institution',
+        'totalScore',
+      ],
+    });
+
+    if (!entrance) {
+      // Generic message to avoid enumerating entrance records.
+      throw AppError.notFound(
+        'No matching entrance record found. Please check your details.',
+      );
+    }
+
+    return {
+      entranceId: entrance.entranceId,
+      applicantNameMm: entrance.applicantNameMm,
+      fatherNameMm: entrance.fatherNameMm,
+      examYear: entrance.examYear,
+      examRollNo: entrance.examRollNo,
+      institution: entrance.institution,
+      totalScore: Number(entrance.totalScore),
+    };
+  }
+
+  /**
    * Registers a new user, hashes the password, and generates an OTP for verification.
+   * Re-verifies the entrance record inside the transaction and marks it as claimed
+   * so the same roll number cannot be used to register twice.
    * If an existing account with the same email is unverified, it will be updated in-place.
    */
   async register(data: AccountRegisterInput): Promise<Account> {
-    const { username, email, password } = data;
+    const { examYear, rollCode, rollNumber, fatherName, email, password } = data;
+    const examRollNo = buildExamRollNo(rollCode, rollNumber);
 
     // 1. Hash password and OTP
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
@@ -50,10 +103,38 @@ export class AuthService extends BaseService<Account> {
     const otpHash = hashOtp(plaintextOtp);
     const otpExpiresAt = getOtpExpiration();
 
-    // 2. Perform atomic lookup and upsert inside transaction
+    // 2. Perform atomic lookup, claim, and upsert inside transaction
     const savedAccount = await AppDataSource.transaction(async (manager) => {
       const accountRepo = manager.getRepository(Account);
+      const entranceRepo = manager.getRepository(EntranceRegistration);
 
+      // --- Re-verify the entrance record (anti-bypass) ---
+      const entrance = await entranceRepo.findOne({
+        where: {
+          examYear: examYear.trim(),
+          examRollNo,
+          fatherNameMm: fatherName.trim(),
+        },
+        lock: { mode: 'pessimistic_write' },
+      });
+
+      if (!entrance) {
+        throw AppError.badRequest(
+          'No matching entrance record found. Please complete the entrance lookup again.',
+        );
+      }
+
+      if (entrance.isClaimed) {
+        throw AppError.badRequest(
+          'This entrance record has already been used to register an account.',
+        );
+      }
+
+      // Claim it now, within the same transaction.
+      entrance.isClaimed = true;
+      await entranceRepo.save(entrance);
+
+      // --- Account lookup / upsert ---
       // Lock row to prevent registration race conditions
       const existingAccount = await accountRepo.findOne({
         where: { email },
@@ -67,14 +148,12 @@ export class AuthService extends BaseService<Account> {
       let account = existingAccount;
       if (account) {
         // Update unverified account in-place
-        account.username = username;
         account.password = passwordHash;
         account.otpCode = otpHash;
         account.otpExpiresAt = otpExpiresAt;
         account.isVerified = false;
       } else {
         account = accountRepo.create({
-          username,
           email,
           password: passwordHash,
           otpCode: otpHash,

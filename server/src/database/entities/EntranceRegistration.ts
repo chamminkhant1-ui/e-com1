@@ -13,6 +13,7 @@ import { EntranceClaim } from './EntranceClaim';
 @Entity({ name: 'entrance_registrations' })
 @Index('idx_entrance_exam_roll_no', ['examRollNo'])
 @Index('idx_entrance_nrc', ['nrcNumber'])
+@Index('idx_entrance_lookup', ['examYear', 'examRollNo'])
 export class EntranceRegistration {
   @PrimaryGeneratedColumn({ name: 'entrance_id' })
   entranceId!: number;
@@ -53,6 +54,13 @@ export class EntranceRegistration {
 
   @Column({ length: 50, name: 'application_no' })
   applicationNo!: string;
+
+  /**
+   * Set to true once an account has been created from this entrance record.
+   * Prevents the same entrance roll number being used to register twice.
+   */
+  @Column({ name: 'is_claimed', default: false })
+  isClaimed!: boolean;
 
   @OneToMany(() => EntranceClaim, (claim) => claim.entrance)
   claims?: EntranceClaim[];

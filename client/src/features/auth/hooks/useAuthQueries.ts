@@ -10,6 +10,7 @@ import {
   forgotPassword,
   verifyResetOtp,
   resetPassword,
+  verifyEntrance,
 } from '../api/auth.service';
 import type { ApiError } from '@/types/api';
 import type {
@@ -20,6 +21,7 @@ import type {
   ForgotPasswordInput,
   VerifyResetOtpInput,
   ResetPasswordInput,
+  VerifyEntranceInput,
 } from '@/types/auth';
 import { AxiosError } from 'axios';
 
@@ -34,6 +36,13 @@ const extractApiError = (error: unknown): ApiError => {
     ok: false,
     message: 'An unexpected network error occurred.',
   };
+};
+
+export const useVerifyEntranceMutation = () => {
+  return useMutation({
+    mutationFn: (data: VerifyEntranceInput) => verifyEntrance(data),
+    throwOnError: false,
+  });
 };
 
 export const useLoginMutation = () => {

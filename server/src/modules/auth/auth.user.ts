@@ -4,7 +4,6 @@ import { AppDataSource } from '../../database/data-source';
 
 export interface AuthUserDto {
   id: number;
-  username: string;
   email: string;
   role: Account['role'];
   hasStudentProfile?: boolean;
@@ -20,7 +19,6 @@ const StudentProfileRepository = AppDataSource.getRepository(StudentProfile);
 export async function buildAuthUserDto(account: Account): Promise<AuthUserDto> {
   const base: AuthUserDto = {
     id: account.id,
-    username: account.username,
     email: account.email,
     role: account.role,
   };

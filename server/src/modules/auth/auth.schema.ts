@@ -2,10 +2,16 @@ import { z } from 'zod';
 
 // 1. Define base fields that a user can provide
 const baseAccountFields = {
-  username: z.string().min(3).max(100),
   email: z.string().email().max(200),
   password: z.string().min(6), // Used for DB updates where hash is already generated
 };
+
+/**
+ * The entrance roll number is split on the client into a code (e.g. ဆလမ) and a
+ * number (e.g. ၂၁၂). They are stored joined with a dash, e.g. "ဆလမ-၂၁၂".
+ */
+const buildExamRollNo = (rollCode: string, rollNumber: string): string =>
+  `${rollCode.trim()}-${rollNumber.trim()}`;
 
 // 2. Define the Role Enum (for server-side validation/use)
 const AccountRole = z.enum(['student', 'admin', 'super', 'owner']);
@@ -18,9 +24,22 @@ export const AccountSchema = {
 
   // --- AUTH Schemas (User interaction) ---
 
-  // REGISTER: User provides plaintext password
+  // VERIFY ENTRANCE (read-only lookup for the first-year registration flow)
+  verifyEntrance: z.object({
+    examYear: z.string().min(1, 'Exam year is required'),
+    rollCode: z.string().min(1, 'Roll code is required'),
+    rollNumber: z.string().min(1, 'Roll number is required'),
+    fatherName: z.string().min(1, 'Father name is required'),
+  }),
+
+  // REGISTER: User provides entrance identifiers + email/password.
+  // The entrance identifiers are re-verified server-side to prevent bypassing
+  // the lookup step.
   register: z.object({
-    username: baseAccountFields.username,
+    examYear: z.string().min(1, 'Exam year is required'),
+    rollCode: z.string().min(1, 'Roll code is required'),
+    rollNumber: z.string().min(1, 'Roll number is required'),
+    fatherName: z.string().min(1, 'Father name is required'),
     email: baseAccountFields.email,
     password: z.string()
       .min(8, 'Password must be at least 8 characters long')
@@ -72,9 +91,8 @@ export const AccountSchema = {
 
   // -----------------------------------------
 
-  // UPDATE: User can update their username, email, or password (all optional)
+  // UPDATE: User can update their email or password (all optional)
   update: z.object({
-    username: baseAccountFields.username.optional(),
     email: baseAccountFields.email.optional(),
     password: baseAccountFields.password.optional(),
   }),
@@ -86,6 +104,7 @@ export const AccountSchema = {
 };
 
 // 4. Export Types for Auth
+export type AccountVerifyEntranceInput = z.infer<typeof AccountSchema.verifyEntrance>;
 export type AccountRegisterInput = z.infer<typeof AccountSchema.register>;
 export type AccountLoginInput = z.infer<typeof AccountSchema.login>;
 export type AccountVerifyOtpInput = z.infer<typeof AccountSchema.verifyOtp>;
@@ -96,6 +115,19 @@ export type AccountResetPasswordInput = z.infer<typeof AccountSchema.resetPasswo
 // 5. Export original Types (for consistency)
 export type AccountCreate = z.infer<typeof AccountSchema.create>;
 export type AccountUpdate = z.infer<typeof AccountSchema.update>;
+
+/** Safe subset of an entrance record returned by the lookup endpoint. */
+export type EntranceMatchDto = {
+  entranceId: number;
+  applicantNameMm: string;
+  fatherNameMm: string;
+  examYear: string;
+  examRollNo: string;
+  institution: 'computer' | 'technology';
+  totalScore: number;
+};
+
+export { buildExamRollNo };
 
 // The full database shape *including* role would be:
 export type AccountDB = AccountCreate & {

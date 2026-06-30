@@ -12,14 +12,10 @@ import { StudentProfile } from './StudentProfile';
 import { SemesterRegistration } from './SemesterRegistration';
 
 @Entity({ name: 'accounts' })
-@Index('idx_accounts_username', ['username'])
 @Index('idx_accounts_email', ['email'])
 export class Account {
   @PrimaryGeneratedColumn()
   id!: number;
-
-  @Column({ length: 100, unique: true })
-  username!: string;
 
   @Column({ length: 200, unique: true, nullable: true })
   email!: string;
