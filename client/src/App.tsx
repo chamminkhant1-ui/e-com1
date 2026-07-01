@@ -13,6 +13,8 @@ const queryClient = new QueryClient({
   },
 });
 
+import { StudentRegistrationFormPage } from '@/pages/StudentRegistrationFormPage';
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -24,7 +26,7 @@ function App() {
 
           {/* Protected - any authenticated user */}
           <Route element={<ProtectedRoute />}>
-            <Route path='/dashboard' element={<div>Protected dashboard</div>} />
+            <Route path='/dashboard' element={<StudentRegistrationFormPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

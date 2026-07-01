@@ -107,9 +107,7 @@ export const ResetOtpForm = ({
     [digits, email, verifyMutation, onVerified],
   );
 
-  const circumference = 2 * Math.PI * 32;
-  const progress =
-    cooldown > 0 ? (cooldown / RESEND_COOLDOWN) * circumference : 0;
+
 
   return (
     <AuthFormCard className='animate-in zoom-in-95 duration-400'>
