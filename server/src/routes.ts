@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import authRoutes from './modules/auth/auth.routes';
+import locationRoutes from './modules/location/location.routes';
 
 const router = Router();
 
 router.use('/auth', authRoutes);
+router.use('/locations', locationRoutes);
 
 // Health check
 router.get('/health', (_req, res) => {

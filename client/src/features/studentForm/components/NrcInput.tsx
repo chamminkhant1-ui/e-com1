@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { NRC_REGIONS } from '../data/formConstants';
+import { NRC_CITIES_BY_REGION, NRC_PREFIXES } from '../data/nrcData';
 
 export interface NrcValue {
   region: string;
@@ -21,43 +22,10 @@ const selectClass =
   'rounded-lg border border-white/15 bg-slate-800 px-2 py-2 text-sm text-white focus:border-indigo-400/70 focus:outline-none focus:ring-1 focus:ring-indigo-400/20 disabled:cursor-not-allowed disabled:opacity-50 transition-all';
 
 export const NrcInput = ({ label, value, onChange, expectedNrc, error }: NrcInputProps) => {
-  const [cities, setCities] = useState<string[]>([]);
-  const [prefixes, setPrefixes] = useState<string[]>([]);
-  const [loadingCities, setLoadingCities] = useState(false);
-  const [loadingPrefixes, setLoadingPrefixes] = useState(false);
   const [validationMsg, setValidationMsg] = useState<string>('');
 
-  // Fetch cities when region changes
-  useEffect(() => {
-    if (!value.region) return;
-    setLoadingCities(true);
-    fetch(`/fetchCitiesForNRC/${value.region}`)
-      .then((r) => r.json())
-      .then((data) => {
-        setCities(data.cities?.map((c: { prefixName: string }) => c.prefixName) ?? []);
-        setLoadingCities(false);
-      })
-      .catch(() => {
-        setCities([]);
-        setLoadingCities(false);
-      });
-  }, [value.region]);
-
-  // Fetch prefixes when city changes
-  useEffect(() => {
-    if (!value.city) return;
-    setLoadingPrefixes(true);
-    fetch(`/fetchNrcType`)
-      .then((r) => r.json())
-      .then((data) => {
-        setPrefixes(data.nrcTypes?.map((t: { nrcTypeName: string }) => t.nrcTypeName) ?? []);
-        setLoadingPrefixes(false);
-      })
-      .catch(() => {
-        setPrefixes([]);
-        setLoadingPrefixes(false);
-      });
-  }, [value.city]);
+  const cities = value.region ? (NRC_CITIES_BY_REGION[value.region] || []) : [];
+  const prefixes = NRC_PREFIXES;
 
   // Validate against expected NRC
   useEffect(() => {
@@ -103,12 +71,12 @@ export const NrcInput = ({ label, value, onChange, expectedNrc, error }: NrcInpu
           onChange={(e) =>
             onChange({ ...value, city: e.target.value, prefix: '', number: '' })
           }
-          disabled={!value.region || loadingCities}
+          disabled={!value.region}
           className={selectClass}
           style={{ width: '80px' }}
         >
           <option value="" disabled>
-            {loadingCities ? '...' : '---'}
+            ---
           </option>
           {cities.map((c) => (
             <option key={c} value={c}>
@@ -122,12 +90,12 @@ export const NrcInput = ({ label, value, onChange, expectedNrc, error }: NrcInpu
         <select
           value={value.prefix}
           onChange={(e) => onChange({ ...value, prefix: e.target.value })}
-          disabled={!value.city || loadingPrefixes}
+          disabled={!value.region || !value.city}
           className={selectClass}
           style={{ width: '80px' }}
         >
           <option value="" disabled>
-            {loadingPrefixes ? '...' : '---'}
+            ---
           </option>
           {prefixes.map((p) => (
             <option key={p} value={p}>

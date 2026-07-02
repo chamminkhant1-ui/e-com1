@@ -38,7 +38,7 @@ export const AddressSelector = ({
   useEffect(() => {
     if (!value.state) return;
     setLoadingDistricts(true);
-    fetch(`/fetchDistricts/${encodeURIComponent(value.state)}`)
+    fetch(`/api/locations/districts/${encodeURIComponent(value.state)}`)
       .then((r) => r.json())
       .then((data) => {
         setDistricts(data.districts?.map((d: { districtName: string }) => d.districtName) ?? []);
@@ -54,7 +54,7 @@ export const AddressSelector = ({
     if (!value.district || !value.state) return;
     setLoadingTownships(true);
     fetch(
-      `/fetchTownship/${encodeURIComponent(value.district)}/${encodeURIComponent(value.state)}`,
+      `/api/locations/townships/${encodeURIComponent(value.state)}/${encodeURIComponent(value.district)}`,
     )
       .then((r) => r.json())
       .then((data) => {

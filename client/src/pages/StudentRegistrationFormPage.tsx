@@ -20,48 +20,82 @@ export const StudentRegistrationFormPage = () => {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
-        <div className="w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-lg">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-green-600 mb-5">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-7 h-7">
-              <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+      <div className='min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12'>
+        <div className='w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-lg'>
+          <div className='mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-green-600 mb-5'>
+            <svg
+              xmlns='http://www.w3.org/2000/svg'
+              fill='none'
+              viewBox='0 0 24 24'
+              strokeWidth={2}
+              stroke='currentColor'
+              className='w-7 h-7'
+            >
+              <path
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                d='m4.5 12.75 6 6 9-13.5'
+              />
             </svg>
           </div>
 
-          <h2 className="text-xl font-bold text-gray-800 mb-2">မှတ်ပုံတင်ခြင်း အောင်မြင်ပါသည်။</h2>
-          <p className="text-sm text-gray-500 mb-6">
-            ကျောင်းသား/သူအဖြစ် မှတ်ပုံတင်ခွင့်တောင်းခံလွှာအား စနစ်သို့ အောင်မြင်စွာ ပေးပို့ပြီးပါပြီ။
+          <h2 className='text-xl font-bold text-gray-800 mb-2'>
+            မှတ်ပုံတင်ခြင်း အောင်မြင်ပါသည်။
+          </h2>
+          <p className='text-sm text-gray-500 mb-6'>
+            ကျောင်းသား/သူအဖြစ် မှတ်ပုံတင်ခွင့်တောင်းခံလွှာအား စနစ်သို့
+            အောင်မြင်စွာ ပေးပို့ပြီးပါပြီ။
           </p>
 
-          {submittedData != null && (() => {
-            const d = submittedData as Record<string, unknown>;
-            const names = d.names as Record<string, string> | undefined;
-            return (
-              <div className="text-left rounded-xl border border-gray-100 bg-gray-50 p-4 text-xs space-y-2 mb-6 max-h-48 overflow-y-auto">
-                <p className="font-semibold text-gray-700 border-b border-gray-200 pb-1.5 mb-1.5">ကျောင်းအပ်အချက်အလက် အနှစ်ချုပ်</p>
-                {names && (
-                  <>
-                    <p><span className="text-gray-400">ကျောင်းသား/သူ အမည်:</span> {names.stdMyanName}</p>
-                    <p><span className="text-gray-400">ဖခင် အမည်:</span> {names.dadMyanName}</p>
-                  </>
-                )}
-                <p><span className="text-gray-400">NRC:</span> {String(d.nrcStd ?? '')}</p>
-                <p><span className="text-gray-400">ဖုန်းနံပါတ်:</span> {String(d.stdPhone ?? '')}</p>
-                <p><span className="text-gray-400">Email:</span> {String(d.stdEmail ?? '')}</p>
-              </div>
-            );
-          })()}
+          {submittedData != null &&
+            (() => {
+              const d = submittedData as Record<string, unknown>;
+              const names = d.names as Record<string, string> | undefined;
+              return (
+                <div className='text-left rounded-xl border border-gray-100 bg-gray-50 p-4 text-xs space-y-2 mb-6 max-h-48 overflow-y-auto'>
+                  <p className='font-semibold text-gray-700 border-b border-gray-200 pb-1.5 mb-1.5'>
+                    ကျောင်းအပ်အချက်အလက် အနှစ်ချုပ်
+                  </p>
+                  {names && (
+                    <>
+                      <p>
+                        <span className='text-gray-400'>
+                          ကျောင်းသား/သူ အမည်:
+                        </span>{' '}
+                        {names.stdMyanName}
+                      </p>
+                      <p>
+                        <span className='text-gray-400'>ဖခင် အမည်:</span>{' '}
+                        {names.dadMyanName}
+                      </p>
+                    </>
+                  )}
+                  <p>
+                    <span className='text-gray-400'>NRC:</span>{' '}
+                    {String(d.nrcStd ?? '')}
+                  </p>
+                  <p>
+                    <span className='text-gray-400'>ဖုန်းနံပါတ်:</span>{' '}
+                    {String(d.stdPhone ?? '')}
+                  </p>
+                  <p>
+                    <span className='text-gray-400'>Email:</span>{' '}
+                    {String(d.stdEmail ?? '')}
+                  </p>
+                </div>
+              );
+            })()}
 
-          <div className="flex gap-3 justify-center">
+          <div className='flex gap-3 justify-center'>
             <button
               onClick={() => setIsSuccess(false)}
-              className="rounded-full border border-gray-300 hover:bg-gray-100 px-5 py-2 text-sm font-semibold text-gray-700 transition-all"
+              className='rounded-full border border-gray-300 hover:bg-gray-100 px-5 py-2 text-sm font-semibold text-gray-700 transition-all'
             >
               အချက်အလက်ပြင်ဆင်ရန်
             </button>
             <button
               onClick={handleLogout}
-              className="rounded-full bg-blue-600 hover:bg-blue-700 px-5 py-2 text-sm font-semibold text-white shadow-sm transition-all"
+              className='rounded-full bg-blue-600 hover:bg-blue-700 px-5 py-2 text-sm font-semibold text-white shadow-sm transition-all'
             >
               ပြီးမြောက်ပြီ
             </button>
@@ -72,19 +106,30 @@ export const StudentRegistrationFormPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className='min-h-screen bg-gray-100'>
       {/* Navbar */}
-      <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-20">
-        <div className="mx-auto flex max-w-[1040px] items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-2 text-blue-600 font-bold text-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.627 48.627 0 0 1 12 20.904a48.627 48.627 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 3.741-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" />
+      <header className='bg-white border-b border-gray-200 shadow-sm sticky top-0 z-20'>
+        <div className='mx-auto flex max-w-[1040px] items-center justify-between px-4 py-3'>
+          <div className='flex items-center gap-2 text-blue-600 font-bold text-sm'>
+            <svg
+              xmlns='http://www.w3.org/2000/svg'
+              fill='none'
+              viewBox='0 0 24 24'
+              strokeWidth={1.5}
+              stroke='currentColor'
+              className='w-5 h-5'
+            >
+              <path
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                d='M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.627 48.627 0 0 1 12 20.904a48.627 48.627 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 3.741-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z'
+              />
             </svg>
-            <span>NPTSU Portal</span>
+            <span>UCSPyay Portal</span>
           </div>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-1.5 rounded border border-gray-300 hover:bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-600 transition-all"
+            className='flex items-center gap-1.5 rounded border border-gray-300 hover:bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-600 transition-all'
           >
             ထွက်ခွာရန်
           </button>
@@ -92,7 +137,7 @@ export const StudentRegistrationFormPage = () => {
       </header>
 
       {/* Form */}
-      <main className="py-6 px-4">
+      <main className='py-6 px-4'>
         <StudentRegistrationForm onSubmitSuccess={handleSuccess} />
       </main>
     </div>

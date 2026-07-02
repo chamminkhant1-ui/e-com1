@@ -49,8 +49,6 @@ export const StudentPersonalAndMatriSection = ({
   expectedMatriPrefix = 'နဇယ',
   expectedRollNumber = '၂၇',
 }: StudentPersonalAndMatriSectionProps) => {
-  const [schools, setSchools] = useState<string[]>([]);
-  const [loadingSchools, setLoadingSchools] = useState(false);
   const [yearValidationMsg, setYearValidationMsg] = useState('');
   const [rollValidationMsg, setRollValidationMsg] = useState('');
 
@@ -67,39 +65,17 @@ export const StudentPersonalAndMatriSection = ({
   // Load Exam Place / School when matriPrefix matches
   useEffect(() => {
     if (!matriPlaceSelect) {
-      setSchools([]);
       return;
     }
 
     if (matriPlaceSelect !== expectedMatriPrefix) {
       setRollValidationMsg('❌ ရွေးချယ်ထားသောအချက်အလက် မကိုက်ညီမှု မရှိပါ။');
-      setSchools([]);
       onStdMatPassSchoolChange('');
       onMatriRollNumberChange('');
       return;
     }
 
     setRollValidationMsg('');
-    setLoadingSchools(true);
-    fetch(`/fetchMatriPlace/${encodeURIComponent(matriPlaceSelect)}`)
-      .then((r) => r.json())
-      .then((data) => {
-        // Assume data.matriPlace is a string or list of places.
-        // If it's a single place or if we have options, let's treat it accordingly.
-        // We will default to a standard list for now or what the API returns.
-        const place = data.matriPlace || '';
-        if (place) {
-          setSchools([place]);
-          onStdMatPassSchoolChange(place);
-        } else {
-          setSchools(['အထက(၁)‌နေပြည်‌တော်(‌ဇေယျာသီရိ)']);
-        }
-        setLoadingSchools(false);
-      })
-      .catch(() => {
-        setSchools(['အထက(၁)‌နေပြည်‌တော်(‌ဇေယျာသီရိ)']);
-        setLoadingSchools(false);
-      });
   }, [matriPlaceSelect, expectedMatriPrefix]);
 
   // Validate Roll Number
@@ -204,13 +180,11 @@ export const StudentPersonalAndMatriSection = ({
         </div>
 
         <div>
-          <FormSelect
+          <FormInput
             label="စာစစ်ဌာန"
-            options={schools}
+            placeholder="အထက(၁)‌နေပြည်‌တော်(‌ဇေယျာသီရိ)"
             value={stdMatPassSchool}
-            onChange={onStdMatPassSchoolChange}
-            disabled={schools.length === 0}
-            placeholder={loadingSchools ? 'Loading...' : '--ရွေးချယ်ပါ--'}
+            onChange={(e) => onStdMatPassSchoolChange(e.target.value)}
           />
         </div>
       </div>

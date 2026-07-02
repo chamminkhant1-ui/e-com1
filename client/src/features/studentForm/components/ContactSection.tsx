@@ -51,7 +51,7 @@ export const ContactSection = ({
 
     setEmailStatus({ message: 'Checking email...', type: 'loading' });
     const timer = setTimeout(() => {
-      fetch('/check_email', {
+      fetch('/api/locations/check-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: stdEmail }),
