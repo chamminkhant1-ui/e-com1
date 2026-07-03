@@ -328,10 +328,12 @@ function PhotoUploadBox({
    ═══════════════════════════════════════════════════════════════════════ */
 interface StudentRegistrationFormProps {
   onSubmitSuccess: (data: unknown) => void;
+  isSubmitting?: boolean;
 }
 
 export const StudentRegistrationForm = ({
   onSubmitSuccess,
+  isSubmitting = false,
 }: StudentRegistrationFormProps) => {
   /* ── enrollment (read-only from server) ─────────────────────────── */
   const enrollment = {
@@ -522,48 +524,125 @@ export const StudentRegistrationForm = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setFormError('');
-    const toMM = (s: string) =>
-      s.replace(
-        /[0-9]/g,
-        (x) => ['၀', '၁', '၂', '၃', '၄', '၅', '၆', '၇', '၈', '၉'][+x],
-      );
-    const expectedNrc = '၉/ဇယသ(နိုင်)၀၂၄၀၇၃';
-    const builtNrc = `${nrcStd.region}/${nrcStd.city}(${nrcStd.prefix})${nrcStd.number}`;
-    if (builtNrc !== expectedNrc) {
-      setFormError('ကျောင်းသား/သူ NRC မကိုက်ညီပါ။ ❌');
+
+    // Basic required-field checks
+    if (!stdEngName.trim()) {
+      setFormError('ကျောင်းသား/သူ အင်္ဂလိပ်အမည် ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
       return;
     }
-    if (intakeYear !== '၂၀၂၅') {
-      setFormError('တက္ကသိုလ်ဝင်တန်းအောင်မြင်သည့် ခုနှစ် မကိုက်ညီပါ။ ❌');
+    if (!mumMyanName.trim() || !mumEngName.trim()) {
+      setFormError('မိခင်အမည် ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
       return;
     }
-    if (matriPlaceSelect !== 'နဇယ') {
-      setFormError('ခုံအမှတ် ခရိုင်ကုဒ် မကိုက်ညီပါ။ ❌');
+    if (!nrcStd.region || !nrcStd.city || !nrcStd.prefix || !nrcStd.number) {
+      setFormError('ကျောင်းသား/သူ NRC ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
       return;
     }
-    if (toMM(matriRollNumber) !== '၂၇') {
-      setFormError('ခုံနံပါတ်မှားယွင်းနေပါသည်။ ❌');
+    if (!nrcDad.region || !nrcDad.city || !nrcDad.prefix || !nrcDad.number) {
+      setFormError('အဘ NRC ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
       return;
     }
-    if (emailMsg.text === 'Email domain/server not verified.') {
-      setFormError('Email စစ်ဆေးမှု မအောင်မြင်ပါ။ ❌');
+    if (!nrcMum.region || !nrcMum.city || !nrcMum.prefix || !nrcMum.number) {
+      setFormError('အမိ NRC ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
       return;
     }
-    if (!photoFile) {
-      setFormError('ကျောင်းသား/သူ၏ ပတ်စပို့ဓာတ်ပုံ တင်ရန် လိုအပ်ပါသည်။ ❌');
+    if (!stdReligion) {
+      setFormError('ကျောင်းသား/သူ ဘာသာ ရွေးချယ်ရန် လိုအပ်ပါသည်။ ❌');
       return;
     }
-    if (!sigFile) {
-      setFormError('ကျောင်းသား/သူ၏ လက်မှတ်ဓါတ်ပုံ တင်ရန် လိုအပ်ပါသည်။ ❌');
+    if (!dadReligion || !mumReligion) {
+      setFormError('မိဘ ဘာသာ ရွေးချယ်ရန် လိုအပ်ပါသည်။ ❌');
       return;
     }
-    onSubmitSuccess({
-      enrollment,
-      nrcStd: builtNrc,
-      names: { stdMyanName, dadMyanName, mumMyanName },
-      stdPhone,
-      stdEmail,
-    });
+    if (!stdDob) {
+      setFormError('မွေးသက္ကရာဇ် ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
+      return;
+    }
+    if (!stdGender) {
+      setFormError('ကျား/မ ရွေးချယ်ရန် လိုအပ်ပါသည်။ ❌');
+      return;
+    }
+    if (!intakeYear) {
+      setFormError('တက္ကသိုလ်ဝင်တန်းအောင်မြင်သည့် ခုနှစ် ရွေးချယ်ရန် လိုအပ်ပါသည်။ ❌');
+      return;
+    }
+    if (!matriPlaceSelect || !matriRollNumber.trim()) {
+      setFormError('ခုံအမှတ် ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
+      return;
+    }
+    if (!stdMatPassSchool.trim()) {
+      setFormError('စာစစ်ဌာန ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
+      return;
+    }
+    if (!dadWork.trim() || !mumWork.trim()) {
+      setFormError('မိဘ အလုပ်အကိုင် ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
+      return;
+    }
+    if (!parentContact.state || !parentContact.district || !parentContact.township || !parentContact.address.trim()) {
+      setFormError('မိဘ လိပ်စာ အပြည့်အစုံ ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
+      return;
+    }
+    if (!parentPhone.trim()) {
+      setFormError('မိဘ ဖုန်းနံပါတ် ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
+      return;
+    }
+    if (!studentContact.state || !studentContact.district || !studentContact.township || !studentContact.address.trim()) {
+      setFormError('ကျောင်းသား/သူ လိပ်စာ အပြည့်အစုံ ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
+      return;
+    }
+    if (!stdPhone.trim()) {
+      setFormError('ကျောင်းသား/သူ ဖုန်းနံပါတ် ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
+      return;
+    }
+
+    // Map Myanmar gender string to DB enum value expected by the backend
+    const genderMap: Record<string, 'M' | 'F' | 'Other'> = {
+      'ကျား': 'M',
+      'မ': 'F',
+    };
+    const genderDb = genderMap[stdGender] ?? 'Other';
+
+    // Build the full payload that matches the backend StudentProfileInput schema
+    const payload = {
+      std_myan_name: stdMyanName,
+      std_eng_name: stdEngName,
+      dad_myan_name: dadMyanName,
+      dad_eng_name: dadEngName,
+      mum_myan_name: mumMyanName,
+      mum_eng_name: mumEngName,
+
+      nrc_std: nrcStd,
+      nrc_dad: nrcDad,
+      nrc_mum: nrcMum,
+
+      race_std: raceStd,
+      race_dad: raceDad,
+      race_mum: raceMum,
+
+      std_religion: stdReligion,
+      dad_religion: dadReligion,
+      mum_religion: mumReligion,
+
+      std_dob: stdDob,
+      std_gender: genderDb,
+
+      intakeYear,
+      matriPlaceSelect,
+      matriRollNumber,
+      std_mat_pass_school: stdMatPassSchool,
+
+      dad_work: dadWork,
+      mum_work: mumWork,
+
+      parent_contact: parentContact,
+      parent_phone: parentPhone,
+
+      student_contact: studentContact,
+      std_phone: stdPhone,
+      std_email: stdEmail,
+    };
+
+    onSubmitSuccess(payload);
   };
 
   /* ─── JSX ─────────────────────────────────────────────────────── */
@@ -1111,9 +1190,17 @@ export const StudentRegistrationForm = ({
       >
         <button
           type='submit'
-          className='flex items-center gap-2 rounded-full bg-blue-600 hover:bg-blue-700 active:scale-[0.98] px-8 py-2.5 text-sm font-semibold text-white shadow-md transition-all'
+          disabled={isSubmitting}
+          className='flex items-center gap-2 rounded-full bg-blue-600 hover:bg-blue-700 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed px-8 py-2.5 text-sm font-semibold text-white shadow-md transition-all'
         >
-          တင်သွင်းရန်
+          {isSubmitting ? (
+            <>
+              <span className='w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin' />
+              တင်သွင်းနေသည်...
+            </>
+          ) : (
+            'တင်သွင်းရန်'
+          )}
         </button>
       </div>
     </form>

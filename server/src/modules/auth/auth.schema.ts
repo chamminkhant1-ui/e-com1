@@ -101,6 +101,80 @@ export const AccountSchema = {
   adminRoleUpdate: z.object({
     role: AccountRole,
   }),
+
+  // STUDENT PROFILE: Authenticated student submits their full registration form data.
+  studentProfile: z.object({
+    // ── Names ──────────────────────────────────────────────────────────────
+    std_myan_name: z.string().min(1, 'Student Myanmar name is required'),
+    std_eng_name: z.string().min(1, 'Student English name is required'),
+    dad_myan_name: z.string().min(1, 'Father Myanmar name is required'),
+    dad_eng_name: z.string().min(1, 'Father English name is required'),
+    mum_myan_name: z.string().min(1, 'Mother Myanmar name is required'),
+    mum_eng_name: z.string().min(1, 'Mother English name is required'),
+
+    // ── NRC (structured: region/city/prefix/number) ─────────────────────
+    nrc_std: z.object({
+      region: z.string().min(1),
+      city: z.string().min(1),
+      prefix: z.string().min(1),
+      number: z.string().min(1),
+    }),
+    nrc_dad: z.object({
+      region: z.string().min(1),
+      city: z.string().min(1),
+      prefix: z.string().min(1),
+      number: z.string().min(1),
+    }),
+    nrc_mum: z.object({
+      region: z.string().min(1),
+      city: z.string().min(1),
+      prefix: z.string().min(1),
+      number: z.string().min(1),
+    }),
+
+    // ── Race (r1 = main race, r2/r3 optional sub-race) ──────────────────
+    race_std: z.object({ r1: z.string(), r2: z.string(), r3: z.string() }),
+    race_dad: z.object({ r1: z.string(), r2: z.string(), r3: z.string() }),
+    race_mum: z.object({ r1: z.string(), r2: z.string(), r3: z.string() }),
+
+    // ── Religion ─────────────────────────────────────────────────────────
+    std_religion: z.string().min(1, 'Student religion is required'),
+    dad_religion: z.string().min(1, 'Father religion is required'),
+    mum_religion: z.string().min(1, 'Mother religion is required'),
+
+    // ── Student personal ─────────────────────────────────────────────────
+    std_dob: z.string().min(1, 'Date of birth is required'),
+    std_gender: z.enum(['M', 'F', 'Other']),
+
+    // ── Matriculation ─────────────────────────────────────────────────────
+    intakeYear: z.string().min(1, 'Intake year is required'),
+    matriPlaceSelect: z.string().min(1, 'Matri place code is required'),
+    matriRollNumber: z.string().min(1, 'Roll number is required'),
+    std_mat_pass_school: z.string().min(1, 'Exam school is required'),
+
+    // ── Parent occupation ─────────────────────────────────────────────────
+    dad_work: z.string().min(1, 'Father occupation is required'),
+    mum_work: z.string().min(1, 'Mother occupation is required'),
+
+    // ── Parent contact ────────────────────────────────────────────────────
+    parent_contact: z.object({
+      state: z.string().min(1),
+      district: z.string().min(1),
+      township: z.string().min(1),
+      address: z.string().min(1),
+    }),
+    parent_phone: z.string().min(1, 'Parent phone is required'),
+
+    // ── Student contact ───────────────────────────────────────────────────
+    student_contact: z.object({
+      state: z.string().min(1),
+      district: z.string().min(1),
+      township: z.string().min(1),
+      address: z.string().min(1),
+    }),
+    std_phone: z.string().min(1, 'Student phone is required'),
+    std_email: z.string().email('Must be a valid email').optional().or(z.literal('')),
+  }),
 };
 
 // 4. Export Types for Auth
@@ -112,6 +186,7 @@ export type AccountResetOtpInput = z.infer<typeof AccountSchema.resetOtp>;
 export type AccountForgotPasswordInput = z.infer<typeof AccountSchema.forgotPassword>;
 export type AccountVerifyResetOtpInput = z.infer<typeof AccountSchema.verifyResetOtp>;
 export type AccountResetPasswordInput = z.infer<typeof AccountSchema.resetPassword>;
+export type StudentProfileInput = z.infer<typeof AccountSchema.studentProfile>;
 // 5. Export original Types (for consistency)
 export type AccountCreate = z.infer<typeof AccountSchema.create>;
 export type AccountUpdate = z.infer<typeof AccountSchema.update>;

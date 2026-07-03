@@ -4,6 +4,12 @@ import crypto from 'crypto';
 import { BaseService } from '../../common/services/BaseService';
 import { Account } from '../../database/entities/Account';
 import { EntranceRegistration } from '../../database/entities/EntranceRegistration';
+import { StudentProfile } from '../../database/entities/StudentProfile';
+import { ParentProfile } from '../../database/entities/ParentProfile';
+import { Address } from '../../database/entities/Address';
+import { State } from '../../database/entities/State';
+import { District } from '../../database/entities/District';
+import { Township } from '../../database/entities/Township';
 import { AppDataSource } from '../../database/data-source';
 import {
   AccountLoginInput,
@@ -13,6 +19,7 @@ import {
   AccountForgotPasswordInput,
   AccountVerifyResetOtpInput,
   AccountResetPasswordInput,
+  StudentProfileInput,
   buildExamRollNo,
   type EntranceMatchDto,
 } from './auth.schema';
@@ -462,5 +469,158 @@ export class AuthService extends BaseService<Account> {
   async logoutAll(accountId: number): Promise<Account> {
     await this.accountRepo.increment({ id: accountId }, 'tokenVersion', 1);
     return await this.accountRepo.findOneByOrFail({ id: accountId });
+  }
+
+  /**
+   * Saves or updates the student registration profile submitted from the dashboard form.
+   * Resolves state/district/township names → IDs, writes StudentProfile,
+   * ParentProfile, and two Address records in a single transaction.
+   */
+  async saveStudentProfile(
+    accountId: number,
+    data: StudentProfileInput,
+  ): Promise<StudentProfile> {
+    // Helper: Myanmar digit → ASCII digit for comparison
+    const toAsciiDigit = (s: string): string =>
+      s.replace(/[၀-၉]/g, (c) => String(c.codePointAt(0)! - 0x1040));
+
+    const buildNrc = (n: StudentProfileInput['nrc_std']): string =>
+      `${n.region}/${n.city}(${n.prefix})${n.number}`;
+
+    // Build NRC strings
+    const studentNrc = buildNrc(data.nrc_std);
+    const fatherNrc = buildNrc(data.nrc_dad);
+    const motherNrc = buildNrc(data.nrc_mum);
+
+    // High-school roll number (matriPlaceSelect-matriRollNumber)
+    const highSchoolRollNo = `${data.matriPlaceSelect}-${data.matriRollNumber}`;
+
+    // Map Myanmar gender label to DB enum
+    const genderMap: Record<string, 'M' | 'F' | 'Other'> = {
+      'ကျား': 'M',
+      'မ': 'F',
+    };
+    const gender: 'M' | 'F' | 'Other' = genderMap[data.std_gender] ?? (data.std_gender as 'M' | 'F' | 'Other');
+
+    /**
+     * Resolves a Myanmar-name state/district/township into their ID codes.
+     * Throws a 400 error if any name is not found in the database.
+     */
+    const resolveLocationIds = async (
+      manager: typeof AppDataSource.manager,
+      contact: StudentProfileInput['student_contact'],
+    ): Promise<{ stateId: string; districtId: string; townshipId: string }> => {
+      const stateRepo = manager.getRepository(State);
+      const districtRepo = manager.getRepository(District);
+      const townshipRepo = manager.getRepository(Township);
+
+      const state = await stateRepo.findOne({ where: { nameMm: contact.state } });
+      if (!state) throw AppError.badRequest(`State not found: ${contact.state}`);
+
+      const district = await districtRepo.findOne({
+        where: { stateId: state.stateId, nameMm: contact.district },
+      });
+      if (!district) throw AppError.badRequest(`District not found: ${contact.district}`);
+
+      const township = await townshipRepo.findOne({
+        where: {
+          stateId: state.stateId,
+          districtId: district.districtId,
+          nameMm: contact.township,
+        },
+      });
+      if (!township) throw AppError.badRequest(`Township not found: ${contact.township}`);
+
+      return {
+        stateId: state.stateId,
+        districtId: district.districtId,
+        townshipId: township.townshipId,
+      };
+    };
+
+    const savedProfile = await AppDataSource.transaction(async (manager) => {
+      const studentProfileRepo = manager.getRepository(StudentProfile);
+      const parentProfileRepo = manager.getRepository(ParentProfile);
+      const addressRepo = manager.getRepository(Address);
+
+      // -- Resolve location IDs for both addresses --
+      const studentLocIds = await resolveLocationIds(manager, data.student_contact);
+      const parentLocIds = await resolveLocationIds(manager, data.parent_contact);
+
+      // -- Upsert StudentProfile --
+      let profile = await studentProfileRepo.findOne({ where: { studentId: accountId } });
+      if (!profile) {
+        profile = studentProfileRepo.create({ studentId: accountId } as Partial<StudentProfile> as StudentProfile);
+      }
+
+      profile.nameMm = data.std_myan_name;
+      profile.nameEn = data.std_eng_name;
+      profile.gender = gender;
+      profile.dob = new Date(data.std_dob) as unknown as Date;
+      profile.phoneNumber = data.std_phone;
+      profile.studentNrc = studentNrc;
+      profile.ethnicity = data.race_std.r1 || undefined;
+      profile.religion = data.std_religion || undefined;
+      profile.highSchoolRollNo = highSchoolRollNo;
+      profile.highSchoolName = data.std_mat_pass_school || undefined;
+      profile.entryAcademicYear = data.intakeYear || undefined;
+
+      const savedStudentProfile = await studentProfileRepo.save(profile);
+
+      // -- Upsert ParentProfile --
+      let parentProfile = await parentProfileRepo.findOne({
+        where: { studentId: accountId },
+      });
+      if (!parentProfile) {
+        parentProfile = parentProfileRepo.create({ studentId: accountId } as Partial<ParentProfile> as ParentProfile);
+      }
+
+      parentProfile.fatherNameMm = data.dad_myan_name;
+      parentProfile.fatherNameEn = data.dad_eng_name;
+      parentProfile.fatherNrc = fatherNrc || undefined;
+      parentProfile.fatherEthnicity = data.race_dad.r1 || undefined;
+      parentProfile.fatherReligion = data.dad_religion || undefined;
+      parentProfile.fatherJob = data.dad_work || undefined;
+      parentProfile.motherNameMm = data.mum_myan_name;
+      parentProfile.motherNameEn = data.mum_eng_name;
+      parentProfile.motherNrc = motherNrc || undefined;
+      parentProfile.motherEthnicity = data.race_mum.r1 || undefined;
+      parentProfile.motherReligion = data.mum_religion || undefined;
+      parentProfile.motherJob = data.mum_work || undefined;
+      parentProfile.parentPhone = data.parent_phone || undefined;
+
+      await parentProfileRepo.save(parentProfile);
+
+      // -- Upsert Address records --
+      // Delete existing 'current' and 'parent' addresses to replace them
+      await addressRepo.delete({ student: { studentId: accountId }, type: 'current' });
+      await addressRepo.delete({ student: { studentId: accountId }, type: 'parent' });
+
+      // Student current address
+      const studentAddr = addressRepo.create({
+        type: 'current',
+        streetAddress: data.student_contact.address,
+        stateId: studentLocIds.stateId,
+        districtId: studentLocIds.districtId,
+        townshipId: studentLocIds.townshipId,
+        student: savedStudentProfile,
+      });
+      await addressRepo.save(studentAddr);
+
+      // Parent address
+      const parentAddr = addressRepo.create({
+        type: 'parent',
+        streetAddress: data.parent_contact.address,
+        stateId: parentLocIds.stateId,
+        districtId: parentLocIds.districtId,
+        townshipId: parentLocIds.townshipId,
+        student: savedStudentProfile,
+      });
+      await addressRepo.save(parentAddr);
+
+      return savedStudentProfile;
+    });
+
+    return savedProfile;
   }
 }

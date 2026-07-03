@@ -74,3 +74,8 @@ export const resetPassword = async (data: ResetPasswordInput): Promise<ApiRespon
   const res = await api.post<ApiResponse<null>>(`${AUTH_URL}/reset-password`, data);
   return res.data;
 };
+
+export const submitStudentProfile = async (data: unknown): Promise<ApiResponse<{ studentId: number }>> => {
+  const res = await api.post<ApiResponse<{ studentId: number }>>(`${AUTH_URL}/profile`, data);
+  return res.data;
+};

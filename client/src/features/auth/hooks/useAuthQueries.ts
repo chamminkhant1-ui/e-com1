@@ -11,6 +11,7 @@ import {
   verifyResetOtp,
   resetPassword,
   verifyEntrance,
+  submitStudentProfile,
 } from '../api/auth.service';
 import type { ApiError } from '@/types/api';
 import type {
@@ -140,6 +141,18 @@ export const useVerifyResetOtpMutation = () => {
 export const useResetPasswordMutation = () => {
   return useMutation({
     mutationFn: (data: ResetPasswordInput) => resetPassword(data),
+    throwOnError: false,
+  });
+};
+
+export const useSubmitStudentProfileMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: unknown) => submitStudentProfile(data),
+    onSuccess: async () => {
+      // Refresh session so hasStudentProfile updates
+      await queryClient.invalidateQueries({ queryKey: ['session'] });
+    },
     throwOnError: false,
   });
 };

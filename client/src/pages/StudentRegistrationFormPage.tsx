@@ -1,15 +1,32 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { StudentRegistrationForm } from '@/features/studentForm/components/StudentRegistrationForm';
+import { useSubmitStudentProfileMutation, extractApiError } from '@/features/auth/hooks/useAuthQueries';
 
 export const StudentRegistrationFormPage = () => {
   const navigate = useNavigate();
   const [isSuccess, setIsSuccess] = useState(false);
   const [submittedData, setSubmittedData] = useState<unknown>(null);
+  const [pageError, setPageError] = useState('');
+
+  const submitMutation = useSubmitStudentProfileMutation();
 
   const handleSuccess = (data: unknown) => {
-    setSubmittedData(data);
-    setIsSuccess(true);
+    setPageError('');
+    submitMutation.mutate(data, {
+      onSuccess: (res) => {
+        if (res.ok) {
+          setSubmittedData(data);
+          setIsSuccess(true);
+        }
+      },
+      onError: (error) => {
+        const apiError = extractApiError(error);
+        setPageError(
+          apiError.message ?? 'တင်သွင်းမှု မအောင်မြင်ပါ။ ကျေးဇူးပြု၍ ထပ်မံကြိုးစားပါ။',
+        );
+      },
+    });
   };
 
   const handleLogout = () => {
@@ -50,37 +67,26 @@ export const StudentRegistrationFormPage = () => {
           {submittedData != null &&
             (() => {
               const d = submittedData as Record<string, unknown>;
-              const names = d.names as Record<string, string> | undefined;
               return (
                 <div className='text-left rounded-xl border border-gray-100 bg-gray-50 p-4 text-xs space-y-2 mb-6 max-h-48 overflow-y-auto'>
                   <p className='font-semibold text-gray-700 border-b border-gray-200 pb-1.5 mb-1.5'>
                     ကျောင်းအပ်အချက်အလက် အနှစ်ချုပ်
                   </p>
-                  {names && (
-                    <>
-                      <p>
-                        <span className='text-gray-400'>
-                          ကျောင်းသား/သူ အမည်:
-                        </span>{' '}
-                        {names.stdMyanName}
-                      </p>
-                      <p>
-                        <span className='text-gray-400'>ဖခင် အမည်:</span>{' '}
-                        {names.dadMyanName}
-                      </p>
-                    </>
-                  )}
                   <p>
-                    <span className='text-gray-400'>NRC:</span>{' '}
-                    {String(d.nrcStd ?? '')}
+                    <span className='text-gray-400'>ကျောင်းသား/သူ အမည်:</span>{' '}
+                    {String(d.std_myan_name ?? '')}
+                  </p>
+                  <p>
+                    <span className='text-gray-400'>ဖခင် အမည်:</span>{' '}
+                    {String(d.dad_myan_name ?? '')}
                   </p>
                   <p>
                     <span className='text-gray-400'>ဖုန်းနံပါတ်:</span>{' '}
-                    {String(d.stdPhone ?? '')}
+                    {String(d.std_phone ?? '')}
                   </p>
                   <p>
                     <span className='text-gray-400'>Email:</span>{' '}
-                    {String(d.stdEmail ?? '')}
+                    {String(d.std_email ?? '')}
                   </p>
                 </div>
               );
@@ -136,9 +142,21 @@ export const StudentRegistrationFormPage = () => {
         </div>
       </header>
 
+      {/* API error banner (shown below navbar, above form) */}
+      {pageError && (
+        <div className='max-w-[1040px] mx-auto mt-4 px-4'>
+          <div className='rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700'>
+            {pageError}
+          </div>
+        </div>
+      )}
+
       {/* Form */}
       <main className='py-6 px-4'>
-        <StudentRegistrationForm onSubmitSuccess={handleSuccess} />
+        <StudentRegistrationForm
+          onSubmitSuccess={handleSuccess}
+          isSubmitting={submitMutation.isPending}
+        />
       </main>
     </div>
   );
