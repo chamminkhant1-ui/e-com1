@@ -6,10 +6,13 @@ import {
   Index,
   OneToOne,
   OneToMany,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import type { Role } from './types';
 import { StudentProfile } from './StudentProfile';
 import { SemesterRegistration } from './SemesterRegistration';
+import { EntranceRegistration } from './EntranceRegistration';
 
 @Entity({ name: 'accounts' })
 @Index('idx_accounts_email', ['email'])
@@ -56,6 +59,13 @@ export class Account {
     nullable: true,
   })
   studentProfile?: StudentProfile;
+
+  @Column({ name: 'entrance_id', nullable: true })
+  entranceId?: number;
+
+  @ManyToOne(() => EntranceRegistration, { onDelete: 'SET NULL', nullable: true })
+  @JoinColumn({ name: 'entrance_id' })
+  entrance?: EntranceRegistration;
 
   @OneToMany(() => SemesterRegistration, (reg) => reg.processedBy)
   processedRegistrations?: SemesterRegistration[];

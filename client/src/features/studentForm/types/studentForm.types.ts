@@ -26,48 +26,48 @@ export interface StudentFormData {
   yearLevel: string;
 
   // Names
-  std_myan_name: string;
-  std_eng_name: string;
-  dad_myan_name: string;
-  dad_eng_name: string;
-  mum_myan_name: string;
-  mum_eng_name: string;
+  nameMm: string;
+  nameEn: string;
+  fatherNameMm: string;
+  fatherNameEn: string;
+  motherNameMm: string;
+  motherNameEn: string;
 
   // NRC
-  nrc_std: NrcValue;
-  nrc_dad: NrcValue;
-  nrc_mum: NrcValue;
+  studentNrc: NrcValue;
+  fatherNrc: NrcValue;
+  motherNrc: NrcValue;
 
   // Race
-  race_std: RaceValue;
-  race_dad: RaceValue;
-  race_mum: RaceValue;
+  ethnicity: RaceValue;
+  fatherEthnicity: RaceValue;
+  motherEthnicity: RaceValue;
 
   // Religion
-  std_religion: string;
-  dad_religion: string;
-  mum_religion: string;
+  religion: string;
+  fatherReligion: string;
+  motherReligion: string;
 
   // Student personal info
-  std_dob: string;
-  std_gender: string;
+  dob: string;
+  gender: string;
 
   // Matriculation
-  intakeYear: string;
+  entryAcademicYear: string;
   matriPlaceSelect: string;
   matriRollNumber: string;
-  std_mat_pass_school: string;
+  highSchoolName: string;
 
   // Parent occupation
-  dad_work: string;
-  mum_work: string;
+  fatherJob: string;
+  motherJob: string;
 
   // Parent contact
   parent_contact: AddressValue;
-  parent_phone: string;
+  parentPhone: string;
 
   // Student contact
   student_contact: AddressValue;
-  std_phone: string;
+  phoneNumber: string;
   std_email: string;
 }

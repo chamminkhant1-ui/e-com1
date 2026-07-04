@@ -197,6 +197,7 @@ export class AuthController {
     }
 
     const userDto = await buildAuthUserDto(account);
+    userDto.serverDate = new Date().toISOString();
 
     res.status(200).json({
       ok: true,

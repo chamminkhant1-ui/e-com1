@@ -6,6 +6,8 @@ export interface User {
   role: Role;
   hasStudentProfile?: boolean;
   studentId?: number;
+  entrance?: EntranceMatchInfo | null;
+  serverDate?: string;
 }
 
 export interface VerifyEntranceInput {

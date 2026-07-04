@@ -329,65 +329,86 @@ function PhotoUploadBox({
 interface StudentRegistrationFormProps {
   onSubmitSuccess: (data: unknown) => void;
   isSubmitting?: boolean;
+  entrance?: { applicantNameMm: string; fatherNameMm: string; examYear: string; examRollNo: string; institution: string } | null;
+  serverDate?: string;
 }
 
 export const StudentRegistrationForm = ({
   onSubmitSuccess,
   isSubmitting = false,
+  entrance,
+  serverDate,
 }: StudentRegistrationFormProps) => {
+  /* ── Myanmar digit helper ────────────────────────────────────────── */
+  const mm = ['၀', '၁', '၂', '၃', '၄', '၅', '၆', '၇', '၈', '၉'];
+  const toMM = (n: number) => String(n).replace(/[0-9]/g, (x) => mm[+x]);
+
   /* ── enrollment (read-only from server) ─────────────────────────── */
-  const enrollment = {
-    registrationDate: (() => {
-      const d = new Date();
-      const mm = ['၀', '၁', '၂', '၃', '၄', '၅', '၆', '၇', '၈', '၉'];
-      const toMM = (n: number) => String(n).replace(/[0-9]/g, (x) => mm[+x]);
-      return `${toMM(d.getDate())}-${toMM(d.getMonth() + 1)}-${toMM(d.getFullYear())}`;
-    })(),
-    yearLevel: 'ပထမနှစ်',
-    acYear: '၂၀၂၅-၂၀၂၆',
-    admissionId: 'နည်းပညာ-၃',
-  };
+  const enrollment = (() => {
+    // Format registrationDate from server ISO string or fall back to client date
+    const dateObj = serverDate ? new Date(serverDate) : new Date();
+    const registrationDate = `${toMM(dateObj.getDate())}-${toMM(dateObj.getMonth() + 1)}-${toMM(dateObj.getFullYear())}`;
+
+    // Derive acYear: examYear e.g. "2025" → "၂၀၂၅-၂၀၂၆"
+    const acYear = entrance?.examYear
+      ? (() => {
+          const y = parseInt(entrance.examYear, 10);
+          return `${toMM(y)}-${toMM(y + 1)}`;
+        })()
+      : '၂၀၂၅-၂၀၂၆';
+
+    // admissionId: examRollNo from entrance record
+    const admissionId = entrance?.examRollNo ?? 'နည်းပညာ-၃';
+
+    return {
+      registrationDate,
+      yearLevel: 'ပထမနှစ်',
+      acYear,
+      admissionId,
+    };
+  })();
 
   /* ── names ───────────────────────────────────────────────────────── */
-  const stdMyanName = 'မအိမ်သူချော';
-  const dadMyanName = 'ဦးအောင်မင်းထွဋ်';
-  const [mumMyanName, setMumMyanName] = useState('');
-  const [stdEngName, setStdEngName] = useState('');
-  const [dadEngName, setDadEngName] = useState('');
-  const [mumEngName, setMumEngName] = useState('');
+  // Student and father Myanmar names are read-only, pre-filled from entrance record
+  const nameMm = entrance?.applicantNameMm ?? '';
+  const fatherNameMm = entrance?.fatherNameMm ?? '';
+  const [motherNameMm, setMotherNameMm] = useState('');
+  const [nameEn, setNameEn] = useState('');
+  const [fatherNameEn, setFatherNameEn] = useState('');
+  const [motherNameEn, setMotherNameEn] = useState('');
 
   /* ── NRC ─────────────────────────────────────────────────────────── */
   const emptyNrc: NrcValue = { region: '', city: '', prefix: '', number: '' };
-  const [nrcStd, setNrcStd] = useState<NrcValue>(emptyNrc);
-  const [nrcDad, setNrcDad] = useState<NrcValue>(emptyNrc);
-  const [nrcMum, setNrcMum] = useState<NrcValue>(emptyNrc);
+  const [studentNrc, setStudentNrc] = useState<NrcValue>(emptyNrc);
+  const [fatherNrc, setFatherNrc] = useState<NrcValue>(emptyNrc);
+  const [motherNrc, setMotherNrc] = useState<NrcValue>(emptyNrc);
 
   /* ── race ────────────────────────────────────────────────────────── */
   const emptyRace: RaceValue = { r1: '', r2: '', r3: '' };
-  const [raceStd, setRaceStd] = useState<RaceValue>(emptyRace);
-  const [raceDad, setRaceDad] = useState<RaceValue>(emptyRace);
-  const [raceMum, setRaceMum] = useState<RaceValue>(emptyRace);
+  const [ethnicity, setEthnicity] = useState<RaceValue>(emptyRace);
+  const [fatherEthnicity, setFatherEthnicity] = useState<RaceValue>(emptyRace);
+  const [motherEthnicity, setMotherEthnicity] = useState<RaceValue>(emptyRace);
 
   /* ── religion ────────────────────────────────────────────────────── */
-  const [stdReligion, setStdReligion] = useState('');
-  const [dadReligion, setDadReligion] = useState('');
-  const [mumReligion, setMumReligion] = useState('');
+  const [religion, setReligion] = useState('');
+  const [fatherReligion, setFatherReligion] = useState('');
+  const [motherReligion, setMotherReligion] = useState('');
 
   /* ── personal ────────────────────────────────────────────────────── */
-  const [stdDob, setStdDob] = useState('');
-  const [stdGender, setStdGender] = useState('');
+  const [dob, setDob] = useState('');
+  const [gender, setGender] = useState('');
 
   /* ── matriculation ───────────────────────────────────────────────── */
-  const [intakeYear, setIntakeYear] = useState('');
+  const [entryAcademicYear, setEntryAcademicYear] = useState('');
   const [matriPlaceSelect, setMatriPlaceSelect] = useState('');
   const [matriRollNumber, setMatriRollNumber] = useState('');
-  const [stdMatPassSchool, setStdMatPassSchool] = useState('');
+  const [highSchoolName, setHighSchoolName] = useState('');
   const [yearMsg, setYearMsg] = useState('');
   const [rollMsg, setRollMsg] = useState('');
 
   /* ── occupations ─────────────────────────────────────────────────── */
-  const [dadWork, setDadWork] = useState('');
-  const [mumWork, setMumWork] = useState('');
+  const [fatherJob, setFatherJob] = useState('');
+  const [motherJob, setMotherJob] = useState('');
 
   /* ── contact ─────────────────────────────────────────────────────── */
   const emptyAddr: AddressValue = {
@@ -399,7 +420,7 @@ export const StudentRegistrationForm = ({
   const [parentContact, setParentContact] = useState<AddressValue>(emptyAddr);
   const [parentPhone, setParentPhone] = useState('');
   const [studentContact, setStudentContact] = useState<AddressValue>(emptyAddr);
-  const [stdPhone, setStdPhone] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [stdEmail, setStdEmail] = useState('');
   const [emailMsg, setEmailMsg] = useState<{ text: string; color: string }>({
     text: '',
@@ -418,16 +439,16 @@ export const StudentRegistrationForm = ({
   /* ─── effects ─────────────────────────────────────────────────── */
   // Validate intake year
   useEffect(() => {
-    if (!intakeYear) {
+    if (!entryAcademicYear) {
       setYearMsg('');
       return;
     }
     setYearMsg(
-      intakeYear !== '၂၀၂၅'
-        ? '❌ ရွေးချယ်ထားသောအချက်အလက်နှင့် မကိုက်ညီပါ။'
+      entryAcademicYear !== '၂၀၂၅'
+        ? '❌ ရွေးချယ်ထားသောအချက်အလက်နှင်• မကိုက်ညိပာသည်။'
         : '',
     );
-  }, [intakeYear]);
+  }, [entryAcademicYear]);
 
   // Validate matri prefix selected
   useEffect(() => {
@@ -436,8 +457,8 @@ export const StudentRegistrationForm = ({
       return;
     }
     if (matriPlaceSelect !== 'နဇယ') {
-      setRollMsg('❌ ရွေးချယ်ထားသောအချက်အလက် မကိုက်ညီမှု မရှိပါ။');
-      setStdMatPassSchool('');
+      setRollMsg('❌ ရွေးချယ်ထားသောအချက်အလက် မကိုက်ညိမှု မရှိပဪ။');
+      setHighSchoolName('');
       setMatriRollNumber('');
       return;
     }
@@ -526,43 +547,43 @@ export const StudentRegistrationForm = ({
     setFormError('');
 
     // Basic required-field checks
-    if (!stdEngName.trim()) {
+    if (!nameEn.trim()) {
       setFormError('ကျောင်းသား/သူ အင်္ဂလိပ်အမည် ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
       return;
     }
-    if (!mumMyanName.trim() || !mumEngName.trim()) {
+    if (!motherNameMm.trim() || !motherNameEn.trim()) {
       setFormError('မိခင်အမည် ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
       return;
     }
-    if (!nrcStd.region || !nrcStd.city || !nrcStd.prefix || !nrcStd.number) {
+    if (!studentNrc.region || !studentNrc.city || !studentNrc.prefix || !studentNrc.number) {
       setFormError('ကျောင်းသား/သူ NRC ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
       return;
     }
-    if (!nrcDad.region || !nrcDad.city || !nrcDad.prefix || !nrcDad.number) {
+    if (!fatherNrc.region || !fatherNrc.city || !fatherNrc.prefix || !fatherNrc.number) {
       setFormError('အဘ NRC ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
       return;
     }
-    if (!nrcMum.region || !nrcMum.city || !nrcMum.prefix || !nrcMum.number) {
+    if (!motherNrc.region || !motherNrc.city || !motherNrc.prefix || !motherNrc.number) {
       setFormError('အမိ NRC ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
       return;
     }
-    if (!stdReligion) {
+    if (!religion) {
       setFormError('ကျောင်းသား/သူ ဘာသာ ရွေးချယ်ရန် လိုအပ်ပါသည်။ ❌');
       return;
     }
-    if (!dadReligion || !mumReligion) {
+    if (!fatherReligion || !motherReligion) {
       setFormError('မိဘ ဘာသာ ရွေးချယ်ရန် လိုအပ်ပါသည်။ ❌');
       return;
     }
-    if (!stdDob) {
+    if (!dob) {
       setFormError('မွေးသက္ကရာဇ် ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
       return;
     }
-    if (!stdGender) {
+    if (!gender) {
       setFormError('ကျား/မ ရွေးချယ်ရန် လိုအပ်ပါသည်။ ❌');
       return;
     }
-    if (!intakeYear) {
+    if (!entryAcademicYear) {
       setFormError('တက္ကသိုလ်ဝင်တန်းအောင်မြင်သည့် ခုနှစ် ရွေးချယ်ရန် လိုအပ်ပါသည်။ ❌');
       return;
     }
@@ -570,11 +591,11 @@ export const StudentRegistrationForm = ({
       setFormError('ခုံအမှတ် ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
       return;
     }
-    if (!stdMatPassSchool.trim()) {
+    if (!highSchoolName.trim()) {
       setFormError('စာစစ်ဌာန ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
       return;
     }
-    if (!dadWork.trim() || !mumWork.trim()) {
+    if (!fatherJob.trim() || !motherJob.trim()) {
       setFormError('မိဘ အလုပ်အကိုင် ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
       return;
     }
@@ -590,7 +611,7 @@ export const StudentRegistrationForm = ({
       setFormError('ကျောင်းသား/သူ လိပ်စာ အပြည့်အစုံ ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
       return;
     }
-    if (!stdPhone.trim()) {
+    if (!phoneNumber.trim()) {
       setFormError('ကျောင်းသား/သူ ဖုန်းနံပါတ် ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
       return;
     }
@@ -600,45 +621,45 @@ export const StudentRegistrationForm = ({
       'ကျား': 'M',
       'မ': 'F',
     };
-    const genderDb = genderMap[stdGender] ?? 'Other';
+    const genderDb = genderMap[gender] ?? 'Other';
 
-    // Build the full payload that matches the backend StudentProfileInput schema
+    // Build the full payload matching the backend StudentProfileInput schema
     const payload = {
-      std_myan_name: stdMyanName,
-      std_eng_name: stdEngName,
-      dad_myan_name: dadMyanName,
-      dad_eng_name: dadEngName,
-      mum_myan_name: mumMyanName,
-      mum_eng_name: mumEngName,
+      nameMm,
+      nameEn,
+      fatherNameMm,
+      fatherNameEn,
+      motherNameMm,
+      motherNameEn,
 
-      nrc_std: nrcStd,
-      nrc_dad: nrcDad,
-      nrc_mum: nrcMum,
+      studentNrc,
+      fatherNrc,
+      motherNrc,
 
-      race_std: raceStd,
-      race_dad: raceDad,
-      race_mum: raceMum,
+      ethnicity,
+      fatherEthnicity,
+      motherEthnicity,
 
-      std_religion: stdReligion,
-      dad_religion: dadReligion,
-      mum_religion: mumReligion,
+      religion,
+      fatherReligion,
+      motherReligion,
 
-      std_dob: stdDob,
-      std_gender: genderDb,
+      dob,
+      gender: genderDb,
 
-      intakeYear,
+      entryAcademicYear,
       matriPlaceSelect,
       matriRollNumber,
-      std_mat_pass_school: stdMatPassSchool,
+      highSchoolName,
 
-      dad_work: dadWork,
-      mum_work: mumWork,
+      fatherJob,
+      motherJob,
 
       parent_contact: parentContact,
-      parent_phone: parentPhone,
+      parentPhone,
 
       student_contact: studentContact,
-      std_phone: stdPhone,
+      phoneNumber,
       std_email: stdEmail,
     };
 
@@ -741,21 +762,21 @@ export const StudentRegistrationForm = ({
               <td className={td}>
                 <input
                   readOnly
-                  value={stdMyanName}
+                  value={nameMm}
                   className={`${cellInput} bg-gray-50`}
                 />
               </td>
               <td className={td}>
                 <input
                   readOnly
-                  value={dadMyanName}
+                  value={fatherNameMm}
                   className={`${cellInput} bg-gray-50`}
                 />
               </td>
               <td className={td}>
                 <input
-                  value={mumMyanName}
-                  onChange={(e) => setMumMyanName(e.target.value)}
+                  value={motherNameMm}
+                  onChange={(e) => setMotherNameMm(e.target.value)}
                   placeholder='ဒေါ်......'
                   required
                   className={cellInput}
@@ -766,8 +787,8 @@ export const StudentRegistrationForm = ({
               <td className={`${td} text-left`}>အင်္ဂလိပ်</td>
               <td className={td}>
                 <input
-                  value={stdEngName}
-                  onChange={(e) => setStdEngName(e.target.value)}
+                  value={nameEn}
+                  onChange={(e) => setNameEn(e.target.value)}
                   placeholder='Mg/Ma ......'
                   required
                   className={cellInput}
@@ -775,8 +796,8 @@ export const StudentRegistrationForm = ({
               </td>
               <td className={td}>
                 <input
-                  value={dadEngName}
-                  onChange={(e) => setDadEngName(e.target.value)}
+                  value={fatherNameEn}
+                  onChange={(e) => setFatherNameEn(e.target.value)}
                   placeholder='U ......'
                   required
                   className={cellInput}
@@ -784,8 +805,8 @@ export const StudentRegistrationForm = ({
               </td>
               <td className={td}>
                 <input
-                  value={mumEngName}
-                  onChange={(e) => setMumEngName(e.target.value)}
+                  value={motherNameEn}
+                  onChange={(e) => setMotherNameEn(e.target.value)}
                   placeholder='Daw ......'
                   required
                   className={cellInput}
@@ -804,16 +825,16 @@ export const StudentRegistrationForm = ({
               </td>
               <td className={`${td} text-left`}>
                 <NrcCell
-                  value={nrcStd}
-                  onChange={setNrcStd}
-                  expectedNrc='၉/ဇယသ(နိုင်)၀၂၄၀၇၃'
+                  value={studentNrc}
+                  onChange={setStudentNrc}
+                  expectedNrc='၁/ဇယသ(နိုင်)၀၂၄၀၂၃'
                 />
               </td>
               <td className={`${td} text-left`}>
-                <NrcCell value={nrcDad} onChange={setNrcDad} />
+                <NrcCell value={fatherNrc} onChange={setFatherNrc} />
               </td>
               <td className={`${td} text-left`}>
-                <NrcCell value={nrcMum} onChange={setNrcMum} />
+                <NrcCell value={motherNrc} onChange={setMotherNrc} />
               </td>
             </tr>
 
@@ -823,13 +844,13 @@ export const StudentRegistrationForm = ({
                 လူမျိုး
               </td>
               <td className={`${td} text-left`}>
-                <RaceCell value={raceStd} onChange={setRaceStd} />
+                <RaceCell value={ethnicity} onChange={setEthnicity} />
               </td>
               <td className={`${td} text-left`}>
-                <RaceCell value={raceDad} onChange={setRaceDad} />
+                <RaceCell value={fatherEthnicity} onChange={setFatherEthnicity} />
               </td>
               <td className={`${td} text-left`}>
-                <RaceCell value={raceMum} onChange={setRaceMum} />
+                <RaceCell value={motherEthnicity} onChange={setMotherEthnicity} />
               </td>
             </tr>
 
@@ -840,8 +861,8 @@ export const StudentRegistrationForm = ({
               </td>
               <td className={td}>
                 <select
-                  value={stdReligion}
-                  onChange={(e) => setStdReligion(e.target.value)}
+                  value={religion}
+                  onChange={(e) => setReligion(e.target.value)}
                   required
                   className={`${cellSel} w-full`}
                 >
@@ -857,8 +878,8 @@ export const StudentRegistrationForm = ({
               </td>
               <td className={td}>
                 <select
-                  value={dadReligion}
-                  onChange={(e) => setDadReligion(e.target.value)}
+                  value={fatherReligion}
+                  onChange={(e) => setFatherReligion(e.target.value)}
                   required
                   className={`${cellSel} w-full`}
                 >
@@ -874,8 +895,8 @@ export const StudentRegistrationForm = ({
               </td>
               <td className={td}>
                 <select
-                  value={mumReligion}
-                  onChange={(e) => setMumReligion(e.target.value)}
+                  value={motherReligion}
+                  onChange={(e) => setMotherReligion(e.target.value)}
                   required
                   className={`${cellSel} w-full`}
                 >
@@ -902,8 +923,8 @@ export const StudentRegistrationForm = ({
               <td className={td} colSpan={3}>
                 <input
                   type='date'
-                  value={stdDob}
-                  onChange={(e) => setStdDob(e.target.value)}
+                  value={dob}
+                  onChange={(e) => setDob(e.target.value)}
                   required
                   className={`${cellInput} w-auto`}
                   style={{ minWidth: 180 }}
@@ -919,10 +940,10 @@ export const StudentRegistrationForm = ({
                   <label className='flex items-center gap-2 cursor-pointer'>
                     <input
                       type='radio'
-                      name='std_gender'
+                      name='gender'
                       value='ကျား'
-                      checked={stdGender === 'ကျား'}
-                      onChange={(e) => setStdGender(e.target.value)}
+                      checked={gender === 'ကျား'}
+                      onChange={(e) => setGender(e.target.value)}
                       className='w-4 h-4 accent-blue-600'
                     />
                     <span>ကျား</span>
@@ -930,10 +951,10 @@ export const StudentRegistrationForm = ({
                   <label className='flex items-center gap-2 cursor-pointer'>
                     <input
                       type='radio'
-                      name='std_gender'
+                      name='gender'
                       value='မ'
-                      checked={stdGender === 'မ'}
-                      onChange={(e) => setStdGender(e.target.value)}
+                      checked={gender === 'မ'}
+                      onChange={(e) => setGender(e.target.value)}
                       className='w-4 h-4 accent-blue-600'
                     />
                     <span>မ</span>
@@ -957,8 +978,8 @@ export const StudentRegistrationForm = ({
               <td className={td} colSpan={3}>
                 <div className='flex items-center gap-2 pl-2'>
                   <select
-                    value={intakeYear}
-                    onChange={(e) => setIntakeYear(e.target.value)}
+                    value={entryAcademicYear}
+                    onChange={(e) => setEntryAcademicYear(e.target.value)}
                     required
                     className={`${cellSel}`}
                     style={{ width: 120 }}
@@ -1026,8 +1047,8 @@ export const StudentRegistrationForm = ({
                 <div className='pl-2'>
                   <input
                     type='text'
-                    value={stdMatPassSchool}
-                    onChange={(e) => setStdMatPassSchool(e.target.value)}
+                    value={highSchoolName}
+                    onChange={(e) => setHighSchoolName(e.target.value)}
                     className={`${cellInput}`}
                     style={{ width: 320 }}
                     placeholder='အထက(၁)‌နေပြည်‌တော်(‌ဇေယျာသီရိ)'
@@ -1044,8 +1065,8 @@ export const StudentRegistrationForm = ({
               </td>
               <td className={td}>
                 <input
-                  value={dadWork}
-                  onChange={(e) => setDadWork(e.target.value)}
+                  value={fatherJob}
+                  onChange={(e) => setFatherJob(e.target.value)}
                   placeholder='ဝန်ထမ်း'
                   required
                   className={cellInput}
@@ -1053,8 +1074,8 @@ export const StudentRegistrationForm = ({
               </td>
               <td className={td}>
                 <input
-                  value={mumWork}
-                  onChange={(e) => setMumWork(e.target.value)}
+                  value={motherJob}
+                  onChange={(e) => setMotherJob(e.target.value)}
                   placeholder='မှီခို'
                   required
                   className={cellInput}
@@ -1136,8 +1157,8 @@ export const StudentRegistrationForm = ({
               <td className={td} colSpan={3}>
                 <input
                   type='tel'
-                  value={stdPhone}
-                  onChange={(e) => setStdPhone(e.target.value)}
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
                   placeholder='091234567'
                   pattern='\d{7,11}'
                   required

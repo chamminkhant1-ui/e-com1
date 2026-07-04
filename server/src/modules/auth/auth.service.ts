@@ -159,6 +159,7 @@ export class AuthService extends BaseService<Account> {
         account.otpCode = otpHash;
         account.otpExpiresAt = otpExpiresAt;
         account.isVerified = false;
+        account.entranceId = entrance.entranceId;
       } else {
         account = accountRepo.create({
           email,
@@ -166,6 +167,7 @@ export class AuthService extends BaseService<Account> {
           otpCode: otpHash,
           otpExpiresAt,
           isVerified: false,
+          entranceId: entrance.entranceId,
         });
       }
 
@@ -482,15 +484,15 @@ export class AuthService extends BaseService<Account> {
   ): Promise<StudentProfile> {
     // Helper: Myanmar digit → ASCII digit for comparison
     const toAsciiDigit = (s: string): string =>
-      s.replace(/[၀-၉]/g, (c) => String(c.codePointAt(0)! - 0x1040));
+      s.replace(/[၁-၉]/g, (c) => String(c.codePointAt(0)! - 0x1040));
 
-    const buildNrc = (n: StudentProfileInput['nrc_std']): string =>
+    const buildNrc = (n: typeof data.studentNrc): string =>
       `${n.region}/${n.city}(${n.prefix})${n.number}`;
 
     // Build NRC strings
-    const studentNrc = buildNrc(data.nrc_std);
-    const fatherNrc = buildNrc(data.nrc_dad);
-    const motherNrc = buildNrc(data.nrc_mum);
+    const studentNrc = buildNrc(data.studentNrc);
+    const fatherNrc = buildNrc(data.fatherNrc);
+    const motherNrc = buildNrc(data.motherNrc);
 
     // High-school roll number (matriPlaceSelect-matriRollNumber)
     const highSchoolRollNo = `${data.matriPlaceSelect}-${data.matriRollNumber}`;
@@ -500,7 +502,13 @@ export class AuthService extends BaseService<Account> {
       'ကျား': 'M',
       'မ': 'F',
     };
-    const gender: 'M' | 'F' | 'Other' = genderMap[data.std_gender] ?? (data.std_gender as 'M' | 'F' | 'Other');
+    const gender: 'M' | 'F' | 'Other' = genderMap[data.gender] ?? (data.gender as 'M' | 'F' | 'Other');
+
+    // Fetch student's account to get the associated entrance ID
+    const account = await this.accountRepo.findOne({
+      where: { id: accountId },
+      select: ['entranceId'],
+    });
 
     /**
      * Resolves a Myanmar-name state/district/township into their ID codes.
@@ -508,7 +516,7 @@ export class AuthService extends BaseService<Account> {
      */
     const resolveLocationIds = async (
       manager: typeof AppDataSource.manager,
-      contact: StudentProfileInput['student_contact'],
+      contact: typeof data.student_contact,
     ): Promise<{ stateId: string; districtId: string; townshipId: string }> => {
       const stateRepo = manager.getRepository(State);
       const districtRepo = manager.getRepository(District);
@@ -553,17 +561,18 @@ export class AuthService extends BaseService<Account> {
         profile = studentProfileRepo.create({ studentId: accountId } as Partial<StudentProfile> as StudentProfile);
       }
 
-      profile.nameMm = data.std_myan_name;
-      profile.nameEn = data.std_eng_name;
+      profile.nameMm = data.nameMm;
+      profile.nameEn = data.nameEn;
       profile.gender = gender;
-      profile.dob = new Date(data.std_dob) as unknown as Date;
-      profile.phoneNumber = data.std_phone;
+      profile.dob = new Date(data.dob) as unknown as Date;
+      profile.phoneNumber = data.phoneNumber;
       profile.studentNrc = studentNrc;
-      profile.ethnicity = data.race_std.r1 || undefined;
-      profile.religion = data.std_religion || undefined;
+      profile.ethnicity = data.ethnicity.r1 || undefined;
+      profile.religion = data.religion || undefined;
       profile.highSchoolRollNo = highSchoolRollNo;
-      profile.highSchoolName = data.std_mat_pass_school || undefined;
-      profile.entryAcademicYear = data.intakeYear || undefined;
+      profile.highSchoolName = data.highSchoolName || undefined;
+      profile.entryAcademicYear = data.entryAcademicYear || undefined;
+      profile.entranceId = account?.entranceId || undefined;
 
       const savedStudentProfile = await studentProfileRepo.save(profile);
 
@@ -575,19 +584,19 @@ export class AuthService extends BaseService<Account> {
         parentProfile = parentProfileRepo.create({ studentId: accountId } as Partial<ParentProfile> as ParentProfile);
       }
 
-      parentProfile.fatherNameMm = data.dad_myan_name;
-      parentProfile.fatherNameEn = data.dad_eng_name;
+      parentProfile.fatherNameMm = data.fatherNameMm;
+      parentProfile.fatherNameEn = data.fatherNameEn;
       parentProfile.fatherNrc = fatherNrc || undefined;
-      parentProfile.fatherEthnicity = data.race_dad.r1 || undefined;
-      parentProfile.fatherReligion = data.dad_religion || undefined;
-      parentProfile.fatherJob = data.dad_work || undefined;
-      parentProfile.motherNameMm = data.mum_myan_name;
-      parentProfile.motherNameEn = data.mum_eng_name;
+      parentProfile.fatherEthnicity = data.fatherEthnicity.r1 || undefined;
+      parentProfile.fatherReligion = data.fatherReligion || undefined;
+      parentProfile.fatherJob = data.fatherJob || undefined;
+      parentProfile.motherNameMm = data.motherNameMm;
+      parentProfile.motherNameEn = data.motherNameEn;
       parentProfile.motherNrc = motherNrc || undefined;
-      parentProfile.motherEthnicity = data.race_mum.r1 || undefined;
-      parentProfile.motherReligion = data.mum_religion || undefined;
-      parentProfile.motherJob = data.mum_work || undefined;
-      parentProfile.parentPhone = data.parent_phone || undefined;
+      parentProfile.motherEthnicity = data.motherEthnicity.r1 || undefined;
+      parentProfile.motherReligion = data.motherReligion || undefined;
+      parentProfile.motherJob = data.motherJob || undefined;
+      parentProfile.parentPhone = data.parentPhone || undefined;
 
       await parentProfileRepo.save(parentProfile);
 

@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { StudentRegistrationForm } from '@/features/studentForm/components/StudentRegistrationForm';
 import { useSubmitStudentProfileMutation, extractApiError } from '@/features/auth/hooks/useAuthQueries';
+import { useAuthUser } from '@/features/auth/hooks/useAuthUser';
 
 export const StudentRegistrationFormPage = () => {
   const navigate = useNavigate();
+  const { user, isLoading: isAuthLoading } = useAuthUser();
   const [isSuccess, setIsSuccess] = useState(false);
   const [submittedData, setSubmittedData] = useState<unknown>(null);
   const [pageError, setPageError] = useState('');
@@ -34,6 +36,19 @@ export const StudentRegistrationFormPage = () => {
     sessionStorage.clear();
     navigate('/', { replace: true });
   };
+
+  if (isAuthLoading) {
+    return (
+      <div className='flex min-h-screen items-center justify-center bg-gray-100'>
+        <div className='flex flex-col items-center gap-3'>
+          <div className='h-8 w-8 animate-spin rounded-full border-[3px] border-blue-600 border-t-transparent' />
+          <p className='text-sm font-medium tracking-wide text-gray-500'>
+            Loading...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (isSuccess) {
     return (
@@ -74,15 +89,15 @@ export const StudentRegistrationFormPage = () => {
                   </p>
                   <p>
                     <span className='text-gray-400'>ကျောင်းသား/သူ အမည်:</span>{' '}
-                    {String(d.std_myan_name ?? '')}
+                    {String(d.nameMm ?? '')}
                   </p>
                   <p>
                     <span className='text-gray-400'>ဖခင် အမည်:</span>{' '}
-                    {String(d.dad_myan_name ?? '')}
+                    {String(d.fatherNameMm ?? '')}
                   </p>
                   <p>
                     <span className='text-gray-400'>ဖုန်းနံပါတ်:</span>{' '}
-                    {String(d.std_phone ?? '')}
+                    {String(d.phoneNumber ?? '')}
                   </p>
                   <p>
                     <span className='text-gray-400'>Email:</span>{' '}
@@ -156,6 +171,8 @@ export const StudentRegistrationFormPage = () => {
         <StudentRegistrationForm
           onSubmitSuccess={handleSuccess}
           isSubmitting={submitMutation.isPending}
+          entrance={user?.entrance}
+          serverDate={user?.serverDate}
         />
       </main>
     </div>
