@@ -47,24 +47,40 @@ export const AddressSelector = ({
 
   useEffect(() => {
     if (!value.state) return;
+    let active = true;
     fetch(`/api/locations/districts/${encodeURIComponent(value.state)}`)
       .then((r) => r.json())
-      .then((data) =>
-        setDistricts(data.districts?.map((d: { districtName: string }) => d.districtName) ?? []),
-      )
-      .catch(() => setDistricts([]));
+      .then((data) => {
+        if (!active) return;
+        setDistricts(data.districts?.map((d: { districtName: string }) => d.districtName) ?? []);
+      })
+      .catch(() => {
+        if (!active) return;
+        setDistricts([]);
+      });
+    return () => {
+      active = false;
+    };
   }, [value.state]);
 
   useEffect(() => {
     if (!value.district || !value.state) return;
+    let active = true;
     fetch(
       `/api/locations/townships/${encodeURIComponent(value.state)}/${encodeURIComponent(value.district)}`,
     )
       .then((r) => r.json())
-      .then((data) =>
-        setTownships(data.cities?.map((c: { cityName: string }) => c.cityName) ?? []),
-      )
-      .catch(() => setTownships([]));
+      .then((data) => {
+        if (!active) return;
+        setTownships(data.cities?.map((c: { cityName: string }) => c.cityName) ?? []);
+      })
+      .catch(() => {
+        if (!active) return;
+        setTownships([]);
+      });
+    return () => {
+      active = false;
+    };
   }, [value.district, value.state]);
 
   /* ── Shared JSX fragments ──────────────────────────────────────── */
@@ -72,9 +88,11 @@ export const AddressSelector = ({
   const stateSelect = (
     <select
       value={value.state}
-      onChange={(e) =>
-        onChange({ state: e.target.value, district: '', township: '', address: '' })
-      }
+      onChange={(e) => {
+        setDistricts([]);
+        setTownships([]);
+        onChange({ state: e.target.value, district: '', township: '', address: '' });
+      }}
       className={variant === 'dark' ? selClass : `${selClass} flex-1 min-w-[130px]`}
     >
       <option value=''>--ရွေးချယ်ပါ--</option>
@@ -87,9 +105,10 @@ export const AddressSelector = ({
   const districtSelect = (
     <select
       value={value.district}
-      onChange={(e) =>
-        onChange({ ...value, district: e.target.value, township: '', address: '' })
-      }
+      onChange={(e) => {
+        setTownships([]);
+        onChange({ ...value, district: e.target.value, township: '', address: '' });
+      }}
       disabled={!value.state}
       className={variant === 'dark' ? selClass : `${selClass} flex-1 min-w-[130px]`}
     >

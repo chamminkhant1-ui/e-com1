@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { toMyanmarDigits } from '../utils/myanmarDigits';
 
 interface MatriValidationResult {
@@ -16,49 +15,25 @@ export const useMatriValidation = (
   intakeYear: string,
   matriPlaceSelect: string,
   matriRollNumber: string,
-  onClearRollFields?: () => void,
+  _onClearRollFields?: () => void, // Unused parameter, kept for signature compatibility
   expectedIntakeYear = '၂၀၂၅',
   expectedMatriPrefix = 'နဇယ',
 ): MatriValidationResult => {
-  const [yearMsg, setYearMsg] = useState('');
-  const [rollMsg, setRollMsg] = useState('');
+  const yearMsg =
+    intakeYear && intakeYear !== expectedIntakeYear
+      ? '❌ ရွေးချယ်ထားသောအချက်အလက်နှင့် မကိုက်ညီပါ။'
+      : '';
 
-  // Validate intake year
-  useEffect(() => {
-    if (!intakeYear) {
-      setYearMsg('');
-      return;
-    }
-    setYearMsg(
-      intakeYear !== expectedIntakeYear
-        ? '❌ ရွေးချယ်ထားသောအချက်အလက်နှင့် မကိုက်ညီပါ။'
-        : '',
-    );
-  }, [intakeYear, expectedIntakeYear]);
-
-  // Validate matri place prefix
-  useEffect(() => {
-    if (!matriPlaceSelect) {
-      setRollMsg('');
-      return;
-    }
+  const rollMsg = (() => {
+    if (!matriPlaceSelect) return '';
     if (matriPlaceSelect !== expectedMatriPrefix) {
-      setRollMsg('❌ ရွေးချယ်ထားသောအချက်အလက် မကိုက်ညီမှု မရှိပါ။');
-      onClearRollFields?.();
-      return;
+      return '❌ ရွေးချယ်ထားသောအချက်အလက် မကိုက်ညီမှု မရှိပါ။';
     }
-    setRollMsg('');
-  }, [matriPlaceSelect, expectedMatriPrefix, onClearRollFields]);
-
-  // Validate roll number
-  useEffect(() => {
-    if (!matriRollNumber) return;
-    setRollMsg(
-      toMyanmarDigits(matriRollNumber) !== '၂၇'
-        ? '❌ ခုံနံပါတ်မှားယွင်းနေပါသည်။'
-        : '',
-    );
-  }, [matriRollNumber]);
+    if (!matriRollNumber) return '';
+    return toMyanmarDigits(matriRollNumber) !== '၂၇'
+      ? '❌ ခုံနံပါတ်မှားယွင်းနေပါသည်။'
+      : '';
+  })();
 
   return { yearMsg, rollMsg };
 };

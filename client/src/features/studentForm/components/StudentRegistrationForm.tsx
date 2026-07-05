@@ -27,9 +27,12 @@ const tdLabel = `${td} text-center font-medium`;
 /* ─── constants ──────────────────────────────────────────────────────── */
 const EMPTY_NRC: NrcValue = { region: '', city: '', prefix: '', number: '' };
 const EMPTY_RACE: RaceValue = { r1: '', r2: '', r3: '' };
-const EMPTY_ADDR: AddressValue = { state: '', district: '', township: '', address: '' };
-
-const EXPECTED_STUDENT_NRC = '၁/ဇယသ(နိုင်)၀၂၄၀၂၃';
+const EMPTY_ADDR: AddressValue = {
+  state: '',
+  district: '',
+  township: '',
+  address: '',
+};
 
 /** Map Myanmar gender label to the DB enum value expected by the backend. */
 const GENDER_MAP: Record<string, 'M' | 'F' | 'Other'> = {
@@ -56,6 +59,8 @@ export const StudentRegistrationForm = ({
     isError: isEntranceError,
   } = useEntranceQuery(true);
 
+  const EXPECTED_STUDENT_NRC = entrance?.nrcNumber ?? '';
+
   /* ── server date ─────────────────────────────────────────────────── */
   const serverDate = new Date().toISOString();
 
@@ -76,9 +81,8 @@ export const StudentRegistrationForm = ({
 
   /* ── names ───────────────────────────────────────────────────────── */
   // Student and father Myanmar names are read-only, pre-filled from entrance record.
-  // useState initializer runs once so user edits are never overwritten.
-  const [nameMm] = useState(() => entrance?.applicantNameMm ?? '');
-  const [fatherNameMm] = useState(() => entrance?.fatherNameMm ?? '');
+  const nameMm = entrance?.applicantNameMm ?? '';
+  const fatherNameMm = entrance?.fatherNameMm ?? '';
   const [motherNameMm, setMotherNameMm] = useState('');
   const [nameEn, setNameEn] = useState('');
   const [fatherNameEn, setFatherNameEn] = useState('');
@@ -128,7 +132,8 @@ export const StudentRegistrationForm = ({
   /* ── contact ─────────────────────────────────────────────────────── */
   const [parentContact, setParentContact] = useState<AddressValue>(EMPTY_ADDR);
   const [parentPhone, setParentPhone] = useState('');
-  const [studentContact, setStudentContact] = useState<AddressValue>(EMPTY_ADDR);
+  const [studentContact, setStudentContact] =
+    useState<AddressValue>(EMPTY_ADDR);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [stdEmail, setStdEmail] = useState('');
 
@@ -136,17 +141,17 @@ export const StudentRegistrationForm = ({
 
   /* ── photo / signature ───────────────────────────────────────────── */
   const [photoPreview, setPhotoPreview] = useState('');
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [sigPreview, setSigPreview] = useState('');
-  const [sigFile, setSigFile] = useState<File | null>(null);
 
   /* ── form-level error ────────────────────────────────────────────── */
   const [formError, setFormError] = useState('');
 
   /* ─── file helpers ────────────────────────────────────────────── */
-  const readFile = (e: React.ChangeEvent<HTMLInputElement>, setFile: (f: File | null) => void, setPreview: (s: string) => void) => {
+  const readPreview = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    setPreview: (s: string) => void,
+  ) => {
     const f = e.target.files?.[0] ?? null;
-    setFile(f);
     if (f) {
       const r = new FileReader();
       r.onload = () => setPreview(r.result as string);
@@ -156,14 +161,28 @@ export const StudentRegistrationForm = ({
     }
   };
   const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) =>
-    readFile(e, setPhotoFile, setPhotoPreview);
+    readPreview(e, setPhotoPreview);
   const handleSig = (e: React.ChangeEvent<HTMLInputElement>) =>
-    readFile(e, setSigFile, setSigPreview);
+    readPreview(e, setSigPreview);
 
   /* ─── submit ──────────────────────────────────────────────────── */
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setFormError('');
+
+    // Validation warning/error checks
+    if (stdEmail && emailMsg.text && emailMsg.color.includes('text-red-600')) {
+      setFormError('အီးမေးလ်ပုံစံ မှားယွင်းနေပါသည်။ ❌');
+      return;
+    }
+    if (yearMsg) {
+      setFormError(yearMsg);
+      return;
+    }
+    if (rollMsg) {
+      setFormError(rollMsg);
+      return;
+    }
 
     // Basic required-field checks
     if (!nameEn.trim()) {
@@ -175,7 +194,8 @@ export const StudentRegistrationForm = ({
       return;
     }
 
-    const nrcFilled = (n: NrcValue) => !!(n.region && n.city && n.prefix && n.number);
+    const nrcFilled = (n: NrcValue) =>
+      !!(n.region && n.city && n.prefix && n.number);
     if (!nrcFilled(studentNrc)) {
       setFormError('ကျောင်းသား/သူ NRC ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
       return;
@@ -497,10 +517,18 @@ export const StudentRegistrationForm = ({
                 />
               </td>
               <td className={`${td} text-left`}>
-                <NrcInput variant='light' value={fatherNrc} onChange={setFatherNrc} />
+                <NrcInput
+                  variant='light'
+                  value={fatherNrc}
+                  onChange={setFatherNrc}
+                />
               </td>
               <td className={`${td} text-left`}>
-                <NrcInput variant='light' value={motherNrc} onChange={setMotherNrc} />
+                <NrcInput
+                  variant='light'
+                  value={motherNrc}
+                  onChange={setMotherNrc}
+                />
               </td>
             </tr>
 
@@ -510,13 +538,25 @@ export const StudentRegistrationForm = ({
                 လူမျိုး
               </td>
               <td className={`${td} text-left`}>
-                <RaceSelector variant='light' value={ethnicity} onChange={setEthnicity} />
+                <RaceSelector
+                  variant='light'
+                  value={ethnicity}
+                  onChange={setEthnicity}
+                />
               </td>
               <td className={`${td} text-left`}>
-                <RaceSelector variant='light' value={fatherEthnicity} onChange={setFatherEthnicity} />
+                <RaceSelector
+                  variant='light'
+                  value={fatherEthnicity}
+                  onChange={setFatherEthnicity}
+                />
               </td>
               <td className={`${td} text-left`}>
-                <RaceSelector variant='light' value={motherEthnicity} onChange={setMotherEthnicity} />
+                <RaceSelector
+                  variant='light'
+                  value={motherEthnicity}
+                  onChange={setMotherEthnicity}
+                />
               </td>
             </tr>
 
@@ -675,7 +715,13 @@ export const StudentRegistrationForm = ({
                 <div className='flex items-center gap-1 pl-2'>
                   <select
                     value={matriPlaceSelect}
-                    onChange={(e) => setMatriPlaceSelect(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setMatriPlaceSelect(val);
+                      if (val && val !== 'နဇယ') {
+                        clearRollFields();
+                      }
+                    }}
                     required
                     className={cellSel}
                     style={{ width: 80 }}

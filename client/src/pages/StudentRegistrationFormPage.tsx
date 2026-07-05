@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { StudentRegistrationForm } from '@/features/studentForm/components/StudentRegistrationForm';
 import { useSubmitStudentProfileMutation, useLogoutMutation, extractApiError } from '@/features/auth/hooks/useAuthQueries';
 import { useAuthUser } from '@/features/auth/hooks/useAuthUser';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 export const StudentRegistrationFormPage = () => {
   const navigate = useNavigate();
-  const { user, isLoading: isAuthLoading } = useAuthUser();
+  const { isLoading: isAuthLoading } = useAuthUser();
   const [isSuccess, setIsSuccess] = useState(false);
   const [submittedData, setSubmittedData] = useState<unknown>(null);
   const [pageError, setPageError] = useState('');
@@ -41,16 +42,7 @@ export const StudentRegistrationFormPage = () => {
   };
 
   if (isAuthLoading) {
-    return (
-      <div className='flex min-h-screen items-center justify-center bg-gray-100'>
-        <div className='flex flex-col items-center gap-3'>
-          <div className='h-8 w-8 animate-spin rounded-full border-[3px] border-blue-600 border-t-transparent' />
-          <p className='text-sm font-medium tracking-wide text-gray-500'>
-            Loading...
-          </p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner variant='blue' />;
   }
 
   if (isSuccess) {
@@ -82,33 +74,29 @@ export const StudentRegistrationFormPage = () => {
             အောင်မြင်စွာ ပေးပို့ပြီးပါပြီ။
           </p>
 
-          {submittedData != null &&
-            (() => {
-              const d = submittedData as Record<string, unknown>;
-              return (
-                <div className='text-left rounded-xl border border-gray-100 bg-gray-50 p-4 text-xs space-y-2 mb-6 max-h-48 overflow-y-auto'>
-                  <p className='font-semibold text-gray-700 border-b border-gray-200 pb-1.5 mb-1.5'>
-                    ကျောင်းအပ်အချက်အလက် အနှစ်ချုပ်
-                  </p>
-                  <p>
-                    <span className='text-gray-400'>ကျောင်းသား/သူ အမည်:</span>{' '}
-                    {String(d.nameMm ?? '')}
-                  </p>
-                  <p>
-                    <span className='text-gray-400'>ဖခင် အမည်:</span>{' '}
-                    {String(d.fatherNameMm ?? '')}
-                  </p>
-                  <p>
-                    <span className='text-gray-400'>ဖုန်းနံပါတ်:</span>{' '}
-                    {String(d.phoneNumber ?? '')}
-                  </p>
-                  <p>
-                    <span className='text-gray-400'>Email:</span>{' '}
-                    {String(d.std_email ?? '')}
-                  </p>
-                </div>
-              );
-            })()}
+          {submittedData != null && (
+            <div className='text-left rounded-xl border border-gray-100 bg-gray-50 p-4 text-xs space-y-2 mb-6 max-h-48 overflow-y-auto'>
+              <p className='font-semibold text-gray-700 border-b border-gray-200 pb-1.5 mb-1.5'>
+                ကျောင်းအပ်အချက်အလက် အနှစ်ချုပ်
+              </p>
+              <p>
+                <span className='text-gray-400'>ကျောင်းသား/သူ အမည်:</span>{' '}
+                {String((submittedData as Record<string, unknown>).nameMm ?? '')}
+              </p>
+              <p>
+                <span className='text-gray-400'>ဖခင် အမည်:</span>{' '}
+                {String((submittedData as Record<string, unknown>).fatherNameMm ?? '')}
+              </p>
+              <p>
+                <span className='text-gray-400'>ဖုန်းနံပါတ်:</span>{' '}
+                {String((submittedData as Record<string, unknown>).phoneNumber ?? '')}
+              </p>
+              <p>
+                <span className='text-gray-400'>Email:</span>{' '}
+                {String((submittedData as Record<string, unknown>).std_email ?? '')}
+              </p>
+            </div>
+          )}
 
           <div className='flex gap-3 justify-center'>
             <button

@@ -7,6 +7,7 @@ import { ResetOtpForm } from '@/features/auth/components/ResetOtpForm';
 import { NewPasswordForm } from '@/features/auth/components/NewPasswordForm';
 import { useAuthUser } from '@/features/auth/hooks/useAuthUser';
 import { getAuthenticatedHomePath } from '@/routes/authPaths';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 type AuthStep =
   | 'login'
@@ -113,16 +114,7 @@ export const Login = () => {
   }, []);
 
   if (isLoading) {
-    return (
-      <div className='flex min-h-screen items-center justify-center bg-background'>
-        <div className='flex flex-col items-center gap-3'>
-          <div className='h-8 w-8 animate-spin rounded-full border-[3px] border-primary-container border-t-transparent' />
-          <p className='text-sm font-medium tracking-wide text-on-surface-variant'>
-            Loading...
-          </p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (isAuthenticated && user) {

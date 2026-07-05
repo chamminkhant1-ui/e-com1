@@ -12,21 +12,23 @@ interface EmailValidationResult {
  * domain via `/api/locations/check-email`.
  */
 export const useEmailValidation = (email: string): EmailValidationResult => {
-  const [result, setResult] = useState<EmailValidationResult>({ text: '', color: '' });
+  const [lastEmail, setLastEmail] = useState(email);
+  const [apiResult, setApiResult] = useState<EmailValidationResult | null>(null);
+
+  // Sync state if email changes during rendering
+  if (email !== lastEmail) {
+    setLastEmail(email);
+    setApiResult(null);
+  }
 
   useEffect(() => {
-    if (!email) {
-      setResult({ text: '', color: '' });
-      return;
-    }
+    if (!email) return;
 
     const regex = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i;
-    if (!regex.test(email)) {
-      setResult({ text: 'Invalid email format.', color: 'text-red-600' });
-      return;
-    }
+    if (!regex.test(email)) return;
 
-    setResult({ text: 'Checking...', color: 'text-gray-500' });
+    let active = true;
+
     const timer = setTimeout(() => {
       fetch('/api/locations/check-email', {
         method: 'POST',
@@ -35,20 +37,40 @@ export const useEmailValidation = (email: string): EmailValidationResult => {
       })
         .then((r) => r.json())
         .then((d) => {
-          if (!d.is_valid)
-            setResult({ text: 'Invalid email format.', color: 'text-red-600' });
-          else if (!d.is_verified)
-            setResult({ text: 'Email domain/server not verified.', color: 'text-orange-500' });
-          else
-            setResult({ text: 'Valid and verified email. ✓', color: 'text-green-600' });
+          if (!active) return;
+          if (!d.is_valid) {
+            setApiResult({ text: 'Invalid email format.', color: 'text-red-600' });
+          } else if (!d.is_verified) {
+            setApiResult({ text: 'Email domain/server not verified.', color: 'text-orange-500' });
+          } else {
+            setApiResult({ text: 'Valid and verified email. ✓', color: 'text-green-600' });
+          }
         })
-        .catch(() =>
-          setResult({ text: 'Error checking email.', color: 'text-red-600' }),
-        );
+        .catch(() => {
+          if (!active) return;
+          setApiResult({ text: 'Error checking email.', color: 'text-red-600' });
+        });
     }, 600);
 
-    return () => clearTimeout(timer);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
   }, [email]);
 
-  return result;
+  // Synchronously compute validation results during render
+  if (!email) {
+    return { text: '', color: '' };
+  }
+
+  const regex = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i;
+  if (!regex.test(email)) {
+    return { text: 'Invalid email format.', color: 'text-red-600' };
+  }
+
+  if (apiResult) {
+    return apiResult;
+  }
+
+  return { text: 'Checking...', color: 'text-gray-500' };
 };
