@@ -56,8 +56,10 @@ export class EntranceRegistration {
   applicationNo!: string;
 
   /**
-   * Set to true once an account has been created from this entrance record.
-   * Prevents the same entrance roll number being used to register twice.
+   * Set to true once an account created from this entrance has had its email
+   * verified. Prevents the same entrance roll number being used twice.
+   * Note: claim happens at verify-otp time, not at register time — an
+   * unverified account does NOT lock the entrance.
    */
   @Column({ name: 'is_claimed', default: false })
   isClaimed!: boolean;

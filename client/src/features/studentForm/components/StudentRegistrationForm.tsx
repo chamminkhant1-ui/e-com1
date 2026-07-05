@@ -1,19 +1,22 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import {
-  NRC_REGIONS,
-  MYANMAR_RACES,
   RELIGIONS,
-  STATES,
-  MATRI_PLACE_CODES,
   INTAKE_YEARS,
+  MATRI_PLACE_CODES,
 } from '../data/formConstants';
-import { NRC_CITIES_BY_REGION, NRC_PREFIXES } from '../data/nrcData';
 import type { NrcValue } from './NrcInput';
+import { NrcInput } from './NrcInput';
 import type { RaceValue } from './RaceSelector';
+import { RaceSelector } from './RaceSelector';
 import type { AddressValue } from './AddressSelector';
+import { AddressSelector } from './AddressSelector';
+import { PhotoUpload } from './PhotoUpload';
+import { toMyanmarNumber } from '../utils/myanmarDigits';
+import { useEmailValidation } from '../hooks/useEmailValidation';
+import { useMatriValidation } from '../hooks/useMatriValidation';
 import { useEntranceQuery } from '@/features/entrance/hooks/useEntranceQueries';
 
-/* ─── shared cell-level styles ───────────────────────────────────────── */
+/* ─── shared cell-level styles (light table theme) ──────────────────── */
 const cellSel =
   'border border-gray-500 bg-white text-sm px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-blue-400 disabled:bg-gray-100 disabled:text-gray-400';
 const cellInput =
@@ -21,308 +24,18 @@ const cellInput =
 const td = 'border border-black px-2 py-1 text-sm align-middle';
 const tdLabel = `${td} text-center font-medium`;
 
-/* ─── Compact NRC for inside a td ────────────────────────────────────── */
-function NrcCell({
-  value,
-  onChange,
-  expectedNrc,
-}: {
-  value: NrcValue;
-  onChange: (v: NrcValue) => void;
-  expectedNrc?: string;
-}) {
-  const [validationMsg, setValidationMsg] = useState('');
+/* ─── constants ──────────────────────────────────────────────────────── */
+const EMPTY_NRC: NrcValue = { region: '', city: '', prefix: '', number: '' };
+const EMPTY_RACE: RaceValue = { r1: '', r2: '', r3: '' };
+const EMPTY_ADDR: AddressValue = { state: '', district: '', township: '', address: '' };
 
-  const cities = value.region ? NRC_CITIES_BY_REGION[value.region] || [] : [];
-  const prefixes = NRC_PREFIXES;
+const EXPECTED_STUDENT_NRC = '၁/ဇယသ(နိုင်)၀၂၄၀၂၃';
 
-  useEffect(() => {
-    if (!expectedNrc) return;
-    if (!value.region || !value.city || !value.prefix || !value.number) {
-      setValidationMsg('');
-      return;
-    }
-    const built = `${value.region}/${value.city}(${value.prefix})${value.number}`;
-    setValidationMsg(built === expectedNrc ? '✅' : '❌');
-  }, [value, expectedNrc]);
-
-  return (
-    <div className='flex flex-col gap-1 py-1'>
-      {/* selects row */}
-      <div className='flex flex-wrap items-center gap-0.5 text-sm'>
-        <select
-          value={value.region}
-          onChange={(e) =>
-            onChange({
-              ...value,
-              region: e.target.value,
-              city: '',
-              prefix: '',
-              number: '',
-            })
-          }
-          className={cellSel}
-          style={{ width: 46 }}
-        >
-          <option value='' disabled>
-            ---
-          </option>
-          {NRC_REGIONS.map((r) => (
-            <option key={r} value={r}>
-              {r}
-            </option>
-          ))}
-        </select>
-        <span className='px-0.5'>/</span>
-        <select
-          value={value.city}
-          onChange={(e) =>
-            onChange({ ...value, city: e.target.value, prefix: '', number: '' })
-          }
-          disabled={!value.region}
-          className={cellSel}
-          style={{ width: 72 }}
-        >
-          <option value='' disabled>
-            ---
-          </option>
-          {cities.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </select>
-        <span className='px-0.5'>(</span>
-        <select
-          value={value.prefix}
-          onChange={(e) => onChange({ ...value, prefix: e.target.value })}
-          disabled={!value.region || !value.city}
-          className={cellSel}
-          style={{ width: 72 }}
-        >
-          <option value='' disabled>
-            ---
-          </option>
-          {prefixes.map((p) => (
-            <option key={p} value={p}>
-              {p}
-            </option>
-          ))}
-        </select>
-        <span className='px-0.5'>)</span>
-      </div>
-      {/* number + badge */}
-      <div className='flex items-center gap-1'>
-        <input
-          type='text'
-          value={value.number}
-          onChange={(e) => onChange({ ...value, number: e.target.value })}
-          disabled={!value.prefix}
-          maxLength={6}
-          placeholder='၀၁၂၃၄၅'
-          className={`${cellInput} w-32`}
-        />
-        {validationMsg && (
-          <span
-            className={`font-bold text-base ${validationMsg === '✅' ? 'text-green-600' : 'text-red-600'}`}
-          >
-            {validationMsg}
-          </span>
-        )}
-      </div>
-    </div>
-  );
-}
-
-/* ─── Compact Race selector ───────────────────────────────────────────── */
-function RaceCell({
-  value,
-  onChange,
-}: {
-  value: RaceValue;
-  onChange: (v: RaceValue) => void;
-}) {
-  return (
-    <div className='flex flex-col gap-1 py-1'>
-      <select
-        value={value.r1}
-        onChange={(e) => onChange({ r1: e.target.value, r2: '', r3: '' })}
-        className={`${cellSel} w-full`}
-      >
-        <option value=''>---</option>
-        {MYANMAR_RACES.map((r) => (
-          <option key={r} value={r}>
-            {r}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-}
-
-/* ─── Compact Address selector ────────────────────────────────────────── */
-function AddressCell({
-  value,
-  onChange,
-}: {
-  value: AddressValue;
-  onChange: (v: AddressValue) => void;
-}) {
-  const [districts, setDistricts] = useState<string[]>([]);
-  const [townships, setTownships] = useState<string[]>([]);
-
-  useEffect(() => {
-    if (!value.state) {
-      setDistricts([]);
-      return;
-    }
-    fetch(`/api/locations/districts/${encodeURIComponent(value.state)}`)
-      .then((r) => r.json())
-      .then((d) =>
-        setDistricts(
-          d.districts?.map((x: { districtName: string }) => x.districtName) ??
-            [],
-        ),
-      )
-      .catch(() => setDistricts([]));
-  }, [value.state]);
-
-  useEffect(() => {
-    if (!value.district || !value.state) {
-      setTownships([]);
-      return;
-    }
-    fetch(
-      `/api/locations/townships/${encodeURIComponent(value.state)}/${encodeURIComponent(value.district)}`,
-    )
-      .then((r) => r.json())
-      .then((d) =>
-        setTownships(
-          d.cities?.map((x: { cityName: string }) => x.cityName) ?? [],
-        ),
-      )
-      .catch(() => setTownships([]));
-  }, [value.district, value.state]);
-
-  return (
-    <div className='flex flex-col gap-1 py-1'>
-      <div className='flex flex-wrap gap-1'>
-        <select
-          value={value.state}
-          onChange={(e) =>
-            onChange({
-              state: e.target.value,
-              district: '',
-              township: '',
-              address: '',
-            })
-          }
-          className={`${cellSel} flex-1 min-w-[130px]`}
-        >
-          <option value=''>--ရွေးချယ်ပါ--</option>
-          {STATES.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
-        <select
-          value={value.district}
-          onChange={(e) =>
-            onChange({
-              ...value,
-              district: e.target.value,
-              township: '',
-              address: '',
-            })
-          }
-          disabled={!value.state}
-          className={`${cellSel} flex-1 min-w-[130px]`}
-        >
-          <option value=''>--ရွေးချယ်ပါ--</option>
-          {districts.map((d) => (
-            <option key={d} value={d}>
-              {d}
-            </option>
-          ))}
-        </select>
-        <select
-          value={value.township}
-          onChange={(e) => onChange({ ...value, township: e.target.value })}
-          disabled={!value.district}
-          className={`${cellSel} flex-1 min-w-[130px]`}
-        >
-          <option value=''>--ရွေးချယ်ပါ--</option>
-          {townships.map((t) => (
-            <option key={t} value={t}>
-              {t}
-            </option>
-          ))}
-        </select>
-      </div>
-      <textarea
-        value={value.address}
-        onChange={(e) => onChange({ ...value, address: e.target.value })}
-        disabled={!value.township}
-        rows={3}
-        placeholder='ဥပမာ - အမှတ် ၁၂၃၊ ရာဇသင်္ဂဟလမ်း၊ မင်္ဂလာဒီပရပ်ကွက်၊ ပုဗ္ဗသီရိမြို့နယ်၊ နေပြည်တော်။'
-        className='w-full border border-gray-400 bg-white text-sm px-2 py-1 resize-none focus:outline-none focus:ring-1 focus:ring-blue-400 disabled:bg-gray-100 disabled:text-gray-400'
-      />
-    </div>
-  );
-}
-
-/* ─── Photo Upload Box ────────────────────────────────────────────────── */
-function PhotoUploadBox({
-  label,
-  preview,
-  onChange,
-}: {
-  label: string;
-  preview: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-}) {
-  return (
-    <label
-      className='flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors rounded-lg'
-      style={{ width: 120, height: 160 }}
-    >
-      {preview ? (
-        <img
-          src={preview}
-          alt={label}
-          className='w-full h-full object-cover rounded-lg'
-        />
-      ) : (
-        <div className='flex flex-col items-center gap-1 p-2 text-center'>
-          <svg
-            xmlns='http://www.w3.org/2000/svg'
-            fill='none'
-            viewBox='0 0 24 24'
-            strokeWidth={1.5}
-            stroke='currentColor'
-            className='w-8 h-8 text-gray-400'
-          >
-            <path
-              strokeLinecap='round'
-              strokeLinejoin='round'
-              d='M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5'
-            />
-          </svg>
-          <span className='text-xs text-gray-500 font-semibold leading-tight'>
-            {label}
-          </span>
-        </div>
-      )}
-      <input
-        type='file'
-        accept='image/*'
-        onChange={onChange}
-        className='hidden'
-      />
-    </label>
-  );
-}
+/** Map Myanmar gender label to the DB enum value expected by the backend. */
+const GENDER_MAP: Record<string, 'M' | 'F' | 'Other'> = {
+  ကျား: 'M',
+  မ: 'F',
+};
 
 /* ═══════════════════════════════════════════════════════════════════════
    Main Form Component
@@ -343,33 +56,21 @@ export const StudentRegistrationForm = ({
     isError: isEntranceError,
   } = useEntranceQuery(true);
 
-  /* ── Myanmar digit helper ────────────────────────────────────────── */
-  const mm = ['၀', '၁', '၂', '၃', '၄', '၅', '၆', '၇', '၈', '၉'] as const;
-  const toMM = (n: number) =>
-    String(n).replace(/[0-9]/g, (d) => mm[+d]);
-
   /* ── server date ─────────────────────────────────────────────────── */
   const serverDate = new Date().toISOString();
 
   /* ── enrollment (read-only, derived from entrance) ──────────────── */
   const enrollment = useMemo(() => {
     const dateObj = new Date(serverDate);
-    const registrationDate = `${toMM(dateObj.getDate())}-${toMM(dateObj.getMonth() + 1)}-${toMM(dateObj.getFullYear())}`;
-
-    const acYear = entrance?.examYear
-      ? (() => {
-          const y = parseInt(entrance.examYear, 10);
-          return `${toMM(y)}-${toMM(y + 1)}`;
-        })()
-      : '၂၀၂၅-၂၀၂၆';
-
-    const admissionId = entrance?.examRollNo ?? 'နည်းပညာ-၃';
+    const registrationDate = `${toMyanmarNumber(dateObj.getDate())}-${toMyanmarNumber(
+      dateObj.getMonth() + 1,
+    )}-${toMyanmarNumber(dateObj.getFullYear())}`;
 
     return {
       registrationDate,
       yearLevel: 'ပထမနှစ်',
-      acYear,
-      admissionId,
+      acYear: '၂၀၂၅-၂၀၂၆',
+      admissionId: entrance?.applicationNo ?? 'null',
     };
   }, [entrance, serverDate]);
 
@@ -384,16 +85,14 @@ export const StudentRegistrationForm = ({
   const [motherNameEn, setMotherNameEn] = useState('');
 
   /* ── NRC ─────────────────────────────────────────────────────────── */
-  const emptyNrc: NrcValue = { region: '', city: '', prefix: '', number: '' };
-  const [studentNrc, setStudentNrc] = useState<NrcValue>(emptyNrc);
-  const [fatherNrc, setFatherNrc] = useState<NrcValue>(emptyNrc);
-  const [motherNrc, setMotherNrc] = useState<NrcValue>(emptyNrc);
+  const [studentNrc, setStudentNrc] = useState<NrcValue>(EMPTY_NRC);
+  const [fatherNrc, setFatherNrc] = useState<NrcValue>(EMPTY_NRC);
+  const [motherNrc, setMotherNrc] = useState<NrcValue>(EMPTY_NRC);
 
   /* ── race ────────────────────────────────────────────────────────── */
-  const emptyRace: RaceValue = { r1: '', r2: '', r3: '' };
-  const [ethnicity, setEthnicity] = useState<RaceValue>(emptyRace);
-  const [fatherEthnicity, setFatherEthnicity] = useState<RaceValue>(emptyRace);
-  const [motherEthnicity, setMotherEthnicity] = useState<RaceValue>(emptyRace);
+  const [ethnicity, setEthnicity] = useState<RaceValue>(EMPTY_RACE);
+  const [fatherEthnicity, setFatherEthnicity] = useState<RaceValue>(EMPTY_RACE);
+  const [motherEthnicity, setMotherEthnicity] = useState<RaceValue>(EMPTY_RACE);
 
   /* ── religion ────────────────────────────────────────────────────── */
   const [religion, setReligion] = useState('');
@@ -409,29 +108,31 @@ export const StudentRegistrationForm = ({
   const [matriPlaceSelect, setMatriPlaceSelect] = useState('');
   const [matriRollNumber, setMatriRollNumber] = useState('');
   const [highSchoolName, setHighSchoolName] = useState('');
-  const [yearMsg, setYearMsg] = useState('');
-  const [rollMsg, setRollMsg] = useState('');
+
+  const clearRollFields = useCallback(() => {
+    setHighSchoolName('');
+    setMatriRollNumber('');
+  }, []);
+
+  const { yearMsg, rollMsg } = useMatriValidation(
+    entryAcademicYear,
+    matriPlaceSelect,
+    matriRollNumber,
+    clearRollFields,
+  );
 
   /* ── occupations ─────────────────────────────────────────────────── */
   const [fatherJob, setFatherJob] = useState('');
   const [motherJob, setMotherJob] = useState('');
 
   /* ── contact ─────────────────────────────────────────────────────── */
-  const emptyAddr: AddressValue = {
-    state: '',
-    district: '',
-    township: '',
-    address: '',
-  };
-  const [parentContact, setParentContact] = useState<AddressValue>(emptyAddr);
+  const [parentContact, setParentContact] = useState<AddressValue>(EMPTY_ADDR);
   const [parentPhone, setParentPhone] = useState('');
-  const [studentContact, setStudentContact] = useState<AddressValue>(emptyAddr);
+  const [studentContact, setStudentContact] = useState<AddressValue>(EMPTY_ADDR);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [stdEmail, setStdEmail] = useState('');
-  const [emailMsg, setEmailMsg] = useState<{ text: string; color: string }>({
-    text: '',
-    color: '',
-  });
+
+  const emailMsg = useEmailValidation(stdEmail);
 
   /* ── photo / signature ───────────────────────────────────────────── */
   const [photoPreview, setPhotoPreview] = useState('');
@@ -442,110 +143,22 @@ export const StudentRegistrationForm = ({
   /* ── form-level error ────────────────────────────────────────────── */
   const [formError, setFormError] = useState('');
 
-  /* ─── effects ─────────────────────────────────────────────────── */
-  // Validate intake year
-  useEffect(() => {
-    if (!entryAcademicYear) {
-      setYearMsg('');
-      return;
-    }
-    setYearMsg(
-      entryAcademicYear !== '၂၀၂၅'
-        ? '❌ ရွေးချယ်ထားသောအချက်အလက်နှင်• မကိုက်ညိပာသည်။'
-        : '',
-    );
-  }, [entryAcademicYear]);
-
-  // Validate matri prefix selected
-  useEffect(() => {
-    if (!matriPlaceSelect) {
-      setRollMsg('');
-      return;
-    }
-    if (matriPlaceSelect !== 'နဇယ') {
-      setRollMsg('❌ ရွေးချယ်ထားသောအချက်အလက် မကိုက်ညိမှု မရှိပဪ။');
-      setHighSchoolName('');
-      setMatriRollNumber('');
-      return;
-    }
-    setRollMsg('');
-  }, [matriPlaceSelect]);
-
-  // Validate roll number
-  useEffect(() => {
-    if (!matriRollNumber) return;
-    const toMM = (s: string) =>
-      s.replace(
-        /[0-9]/g,
-        (x) => ['၀', '၁', '၂', '၃', '၄', '၅', '၆', '၇', '၈', '၉'][+x],
-      );
-    setRollMsg(
-      toMM(matriRollNumber) !== '၂၇' ? '❌ ခုံနံပါတ်မှားယွင်းနေပါသည်။' : '',
-    );
-  }, [matriRollNumber]);
-
-  // Validate email (debounced)
-  useEffect(() => {
-    if (!stdEmail) {
-      setEmailMsg({ text: '', color: '' });
-      return;
-    }
-    const regex = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i;
-    if (!regex.test(stdEmail)) {
-      setEmailMsg({ text: 'Invalid email format.', color: 'text-red-600' });
-      return;
-    }
-    setEmailMsg({ text: 'Checking...', color: 'text-gray-500' });
-    const t = setTimeout(() => {
-      fetch('/api/locations/check-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: stdEmail }),
-      })
-        .then((r) => r.json())
-        .then((d) => {
-          if (!d.is_valid)
-            setEmailMsg({
-              text: 'Invalid email format.',
-              color: 'text-red-600',
-            });
-          else if (!d.is_verified)
-            setEmailMsg({
-              text: 'Email domain/server not verified.',
-              color: 'text-orange-500',
-            });
-          else
-            setEmailMsg({
-              text: 'Valid and verified email. ✓',
-              color: 'text-green-600',
-            });
-        })
-        .catch(() =>
-          setEmailMsg({ text: 'Error checking email.', color: 'text-red-600' }),
-        );
-    }, 600);
-    return () => clearTimeout(t);
-  }, [stdEmail]);
-
   /* ─── file helpers ────────────────────────────────────────────── */
-  const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const readFile = (e: React.ChangeEvent<HTMLInputElement>, setFile: (f: File | null) => void, setPreview: (s: string) => void) => {
     const f = e.target.files?.[0] ?? null;
-    setPhotoFile(f);
+    setFile(f);
     if (f) {
       const r = new FileReader();
-      r.onload = () => setPhotoPreview(r.result as string);
+      r.onload = () => setPreview(r.result as string);
       r.readAsDataURL(f);
-    } else setPhotoPreview('');
+    } else {
+      setPreview('');
+    }
   };
-  const handleSig = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0] ?? null;
-    setSigFile(f);
-    if (f) {
-      const r = new FileReader();
-      r.onload = () => setSigPreview(r.result as string);
-      r.readAsDataURL(f);
-    } else setSigPreview('');
-  };
+  const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) =>
+    readFile(e, setPhotoFile, setPhotoPreview);
+  const handleSig = (e: React.ChangeEvent<HTMLInputElement>) =>
+    readFile(e, setSigFile, setSigPreview);
 
   /* ─── submit ──────────────────────────────────────────────────── */
   const handleSubmit = (e: React.FormEvent) => {
@@ -561,18 +174,21 @@ export const StudentRegistrationForm = ({
       setFormError('မိခင်အမည် ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
       return;
     }
-    if (!studentNrc.region || !studentNrc.city || !studentNrc.prefix || !studentNrc.number) {
+
+    const nrcFilled = (n: NrcValue) => !!(n.region && n.city && n.prefix && n.number);
+    if (!nrcFilled(studentNrc)) {
       setFormError('ကျောင်းသား/သူ NRC ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
       return;
     }
-    if (!fatherNrc.region || !fatherNrc.city || !fatherNrc.prefix || !fatherNrc.number) {
+    if (!nrcFilled(fatherNrc)) {
       setFormError('အဘ NRC ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
       return;
     }
-    if (!motherNrc.region || !motherNrc.city || !motherNrc.prefix || !motherNrc.number) {
+    if (!nrcFilled(motherNrc)) {
       setFormError('အမိ NRC ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
       return;
     }
+
     if (!religion) {
       setFormError('ကျောင်းသား/သူ ဘာသာ ရွေးချယ်ရန် လိုအပ်ပါသည်။ ❌');
       return;
@@ -590,7 +206,9 @@ export const StudentRegistrationForm = ({
       return;
     }
     if (!entryAcademicYear) {
-      setFormError('တက္ကသိုလ်ဝင်တန်းအောင်မြင်သည့် ခုနှစ် ရွေးချယ်ရန် လိုအပ်ပါသည်။ ❌');
+      setFormError(
+        'တက္ကသိုလ်ဝင်တန်းအောင်မြင်သည့် ခုနှစ် ရွေးချယ်ရန် လိုအပ်ပါသည်။ ❌',
+      );
       return;
     }
     if (!matriPlaceSelect || !matriRollNumber.trim()) {
@@ -605,7 +223,10 @@ export const StudentRegistrationForm = ({
       setFormError('မိဘ အလုပ်အကိုင် ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
       return;
     }
-    if (!parentContact.state || !parentContact.district || !parentContact.township || !parentContact.address.trim()) {
+
+    const addrFilled = (a: AddressValue) =>
+      !!(a.state && a.district && a.township && a.address.trim());
+    if (!addrFilled(parentContact)) {
       setFormError('မိဘ လိပ်စာ အပြည့်အစုံ ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
       return;
     }
@@ -613,7 +234,7 @@ export const StudentRegistrationForm = ({
       setFormError('မိဘ ဖုန်းနံပါတ် ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
       return;
     }
-    if (!studentContact.state || !studentContact.district || !studentContact.township || !studentContact.address.trim()) {
+    if (!addrFilled(studentContact)) {
       setFormError('ကျောင်းသား/သူ လိပ်စာ အပြည့်အစုံ ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
       return;
     }
@@ -621,13 +242,6 @@ export const StudentRegistrationForm = ({
       setFormError('ကျောင်းသား/သူ ဖုန်းနံပါတ် ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
       return;
     }
-
-    // Map Myanmar gender string to DB enum value expected by the backend
-    const genderMap: Record<string, 'M' | 'F' | 'Other'> = {
-      'ကျား': 'M',
-      'မ': 'F',
-    };
-    const genderDb = genderMap[gender] ?? 'Other';
 
     // Build the full payload matching the backend StudentProfileInput schema
     const payload = {
@@ -651,7 +265,7 @@ export const StudentRegistrationForm = ({
       motherReligion,
 
       dob,
-      gender: genderDb,
+      gender: GENDER_MAP[gender] ?? 'Other',
 
       entryAcademicYear,
       matriPlaceSelect,
@@ -691,12 +305,23 @@ export const StudentRegistrationForm = ({
       <div className='flex min-h-[400px] items-center justify-center px-4'>
         <div className='w-full max-w-md rounded-xl border border-red-200 bg-red-50 p-6 text-center'>
           <div className='mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-500'>
-            <svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' strokeWidth={1.5} stroke='currentColor' className='w-6 h-6'>
-              <path strokeLinecap='round' strokeLinejoin='round' d='M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z' />
+            <svg
+              xmlns='http://www.w3.org/2000/svg'
+              fill='none'
+              viewBox='0 0 24 24'
+              strokeWidth={1.5}
+              stroke='currentColor'
+              className='w-6 h-6'
+            >
+              <path
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                d='M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z'
+              />
             </svg>
           </div>
           <h3 className='text-base font-semibold text-red-700 mb-1'>
-            ခုံစာရင်း ရှာမတွေးပါ။
+            ခုံစာရင်း ရှာမတွေ့ပါ။
           </h3>
           <p className='text-sm text-red-600'>
             ကျေးဇူးပြု၍ နောက်တစ်ကြိမ် ကြိုးစားပါ။
@@ -729,7 +354,7 @@ export const StudentRegistrationForm = ({
         <div className='flex justify-between items-start gap-4 mb-4'>
           {/* Photo upload */}
           <div className='flex flex-col items-center gap-1'>
-            <PhotoUploadBox
+            <PhotoUpload
               label={'Passport ဓာတ်ပုံ\nတင်ရန်'}
               preview={photoPreview}
               onChange={handlePhoto}
@@ -864,17 +489,18 @@ export const StudentRegistrationForm = ({
                 </span>
               </td>
               <td className={`${td} text-left`}>
-                <NrcCell
+                <NrcInput
+                  variant='light'
                   value={studentNrc}
                   onChange={setStudentNrc}
-                  expectedNrc='၁/ဇယသ(နိုင်)၀၂၄၀၂၃'
+                  expectedNrc={EXPECTED_STUDENT_NRC}
                 />
               </td>
               <td className={`${td} text-left`}>
-                <NrcCell value={fatherNrc} onChange={setFatherNrc} />
+                <NrcInput variant='light' value={fatherNrc} onChange={setFatherNrc} />
               </td>
               <td className={`${td} text-left`}>
-                <NrcCell value={motherNrc} onChange={setMotherNrc} />
+                <NrcInput variant='light' value={motherNrc} onChange={setMotherNrc} />
               </td>
             </tr>
 
@@ -884,13 +510,13 @@ export const StudentRegistrationForm = ({
                 လူမျိုး
               </td>
               <td className={`${td} text-left`}>
-                <RaceCell value={ethnicity} onChange={setEthnicity} />
+                <RaceSelector variant='light' value={ethnicity} onChange={setEthnicity} />
               </td>
               <td className={`${td} text-left`}>
-                <RaceCell value={fatherEthnicity} onChange={setFatherEthnicity} />
+                <RaceSelector variant='light' value={fatherEthnicity} onChange={setFatherEthnicity} />
               </td>
               <td className={`${td} text-left`}>
-                <RaceCell value={motherEthnicity} onChange={setMotherEthnicity} />
+                <RaceSelector variant='light' value={motherEthnicity} onChange={setMotherEthnicity} />
               </td>
             </tr>
 
@@ -1142,7 +768,8 @@ export const StudentRegistrationForm = ({
                 </span>
               </td>
               <td className={td} colSpan={3}>
-                <AddressCell
+                <AddressSelector
+                  variant='light'
                   value={parentContact}
                   onChange={setParentContact}
                 />
@@ -1184,7 +811,8 @@ export const StudentRegistrationForm = ({
                 </span>
               </td>
               <td className={td} colSpan={3}>
-                <AddressCell
+                <AddressSelector
+                  variant='light'
                   value={studentContact}
                   onChange={setStudentContact}
                 />
@@ -1234,7 +862,7 @@ export const StudentRegistrationForm = ({
         <div className='flex justify-end mt-6 pr-4'>
           <div className='flex flex-col items-center gap-2'>
             <p className='text-sm'>လျှောက်ထားသူ လက်မှတ် -</p>
-            <PhotoUploadBox
+            <PhotoUpload
               label={'ကျောင်းသား/သူ\nလက်မှတ်တင်ရန်'}
               preview={sigPreview}
               onChange={handleSig}

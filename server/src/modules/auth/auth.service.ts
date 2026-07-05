@@ -96,8 +96,10 @@ export class AuthService extends BaseService<Account> {
 
   /**
    * Registers a new user, hashes the password, and generates an OTP for verification.
-   * Re-verifies the entrance record inside the transaction and marks it as claimed
-   * so the same roll number cannot be used to register twice.
+   * Re-verifies the entrance record inside the transaction but does NOT mark it as
+   * claimed yet — the entrance is only claimed once the account's email is verified
+   * (see verifyOtp). This lets a user re-register with a different email if they
+   * mistyped it, and prevents an abandoned unverified account from locking the roll no.
    * If an existing account with the same email is unverified, it will be updated in-place.
    */
   async register(data: AccountRegisterInput): Promise<Account> {
@@ -110,7 +112,10 @@ export class AuthService extends BaseService<Account> {
     const otpHash = hashOtp(plaintextOtp);
     const otpExpiresAt = getOtpExpiration();
 
-    // 2. Perform atomic lookup, claim, and upsert inside transaction
+    // 2. Perform atomic lookup and upsert inside transaction.
+    //    The entrance is NOT claimed here — that happens only after the email is
+    //    verified in verifyOtp(), so an abandoned unverified account cannot lock
+    //    the entrance roll number.
     const savedAccount = await AppDataSource.transaction(async (manager) => {
       const accountRepo = manager.getRepository(Account);
       const entranceRepo = manager.getRepository(EntranceRegistration);
@@ -122,7 +127,6 @@ export class AuthService extends BaseService<Account> {
           examRollNo,
           fatherNameMm: fatherName.trim(),
         },
-        lock: { mode: 'pessimistic_write' },
       });
 
       if (!entrance) {
@@ -136,10 +140,6 @@ export class AuthService extends BaseService<Account> {
           'This entrance record has already been used to register an account.',
         );
       }
-
-      // Claim it now, within the same transaction.
-      entrance.isClaimed = true;
-      await entranceRepo.save(entrance);
 
       // --- Account lookup / upsert ---
       // Lock row to prevent registration race conditions
@@ -207,6 +207,10 @@ export class AuthService extends BaseService<Account> {
 
   /**
    * Verifies the user's email using the provided plaintext OTP.
+   * On success, atomically marks the account verified AND claims the entrance
+   * record (sets isClaimed = true) so a single roll number can only be tied to
+   * one verified account. If two unverified accounts raced on the same entrance,
+   * the first to verify wins; the loser gets a clear error and must re-register.
    * @param data OTP verification data.
    * @returns The verified Account entity.
    */
@@ -250,14 +254,58 @@ export class AuthService extends BaseService<Account> {
       throw AppError.badRequest('Invalid OTP code.');
     }
 
-    // 4. Update status and save directly to DB
-    account.isVerified = true;
-    account.otpCode = null;
-    account.otpExpiresAt = null;
-    account.lastLoginAt = new Date();
+    // 4. Mark verified and claim the entrance atomically.
+    //    The entrance is only locked down here — after the email is proven
+    //    valid — so a mistyped/abandoned email never strands the roll number.
+    const verifiedAccount = await AppDataSource.transaction(async (manager) => {
+      const accountRepo = manager.getRepository(Account);
+      const entranceRepo = manager.getRepository(EntranceRegistration);
 
-    const verifiedAccount = await this.accountRepo.save(account);
-    verifiedAccount.password = '';
+      // Re-load the account with a write lock so two concurrent verifications
+      // of the same account serialize.
+      const lockedAccount = await accountRepo.findOne({
+        where: { id: account.id },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (!lockedAccount) {
+        throw AppError.notFound('Account not found.');
+      }
+
+      // Claim the entrance (if this account has one). This is the real
+      // "this roll number is now taken" moment.
+      if (lockedAccount.entranceId != null) {
+        const entrance = await entranceRepo.findOne({
+          where: { entranceId: lockedAccount.entranceId },
+          lock: { mode: 'pessimistic_write' },
+        });
+
+        if (!entrance) {
+          throw AppError.badRequest(
+            'The entrance record linked to this account no longer exists.',
+          );
+        }
+
+        if (entrance.isClaimed) {
+          // Another account verified first and claimed this entrance.
+          throw AppError.badRequest(
+            'This entrance record has already been claimed by another account. ' +
+              'Please register again with the correct roll number.',
+          );
+        }
+
+        entrance.isClaimed = true;
+        await entranceRepo.save(entrance);
+      }
+
+      lockedAccount.isVerified = true;
+      lockedAccount.otpCode = null;
+      lockedAccount.otpExpiresAt = null;
+      lockedAccount.lastLoginAt = new Date();
+
+      const saved = await accountRepo.save(lockedAccount);
+      saved.password = '';
+      return saved;
+    });
 
     return verifiedAccount;
   }

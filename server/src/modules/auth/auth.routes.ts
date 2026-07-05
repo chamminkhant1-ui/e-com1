@@ -35,7 +35,7 @@ router.post(
 
 /**
  * @route POST /api/v1/auth/register
- * @desc Registers a new account, re-verifies + claims the entrance record, generates an OTP (which is hashed), and sends it to the user.
+ * @desc Registers a new account, re-verifies the entrance record, generates an OTP (which is hashed), and sends it to the user. The entrance is NOT claimed here — it is claimed only after the email is verified (see /verify-otp).
  * @access Public
  */
 router.post(
@@ -47,7 +47,7 @@ router.post(
 
 /**
  * @route POST /api/v1/auth/verify-otp
- * @desc Verifies the account using the plaintext OTP provided by the user (compares it against the stored hash).
+ * @desc Verifies the account using the plaintext OTP provided by the user (compares it against the stored hash). On success, also claims the linked entrance record so it cannot be used by another account.
  * @access Public
  */
 router.post(

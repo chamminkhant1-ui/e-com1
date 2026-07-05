@@ -21,7 +21,7 @@ export const AppDataSource = new DataSource({
   password: DB_PASSWORD || 'root',
   database: DB_NAME || 'postgres',
   synchronize: false,
-  logging: true,
+  logging: false,
   entities: Object.values(entities).filter(
     (e) => typeof e === 'function',
   ) as Function[],
