@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { StudentRegistrationForm } from '@/features/studentForm/components/StudentRegistrationForm';
-import { useSubmitStudentProfileMutation, extractApiError } from '@/features/auth/hooks/useAuthQueries';
+import { useSubmitStudentProfileMutation, useLogoutMutation, extractApiError } from '@/features/auth/hooks/useAuthQueries';
 import { useAuthUser } from '@/features/auth/hooks/useAuthUser';
 
 export const StudentRegistrationFormPage = () => {
@@ -12,6 +12,7 @@ export const StudentRegistrationFormPage = () => {
   const [pageError, setPageError] = useState('');
 
   const submitMutation = useSubmitStudentProfileMutation();
+  const logoutMutation = useLogoutMutation();
 
   const handleSuccess = (data: unknown) => {
     setPageError('');
@@ -32,9 +33,11 @@ export const StudentRegistrationFormPage = () => {
   };
 
   const handleLogout = () => {
-    localStorage.clear();
-    sessionStorage.clear();
-    navigate('/', { replace: true });
+    logoutMutation.mutate(undefined, {
+      onSuccess: () => {
+        navigate('/', { replace: true });
+      },
+    });
   };
 
   if (isAuthLoading) {
@@ -171,8 +174,6 @@ export const StudentRegistrationFormPage = () => {
         <StudentRegistrationForm
           onSubmitSuccess={handleSuccess}
           isSubmitting={submitMutation.isPending}
-          entrance={user?.entrance}
-          serverDate={user?.serverDate}
         />
       </main>
     </div>

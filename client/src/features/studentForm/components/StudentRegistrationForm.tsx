@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   NRC_REGIONS,
   MYANMAR_RACES,
@@ -11,6 +11,7 @@ import { NRC_CITIES_BY_REGION, NRC_PREFIXES } from '../data/nrcData';
 import type { NrcValue } from './NrcInput';
 import type { RaceValue } from './RaceSelector';
 import type { AddressValue } from './AddressSelector';
+import { useEntranceQuery } from '@/features/entrance/hooks/useEntranceQueries';
 
 /* ─── shared cell-level styles ───────────────────────────────────────── */
 const cellSel =
@@ -329,27 +330,32 @@ function PhotoUploadBox({
 interface StudentRegistrationFormProps {
   onSubmitSuccess: (data: unknown) => void;
   isSubmitting?: boolean;
-  entrance?: { applicantNameMm: string; fatherNameMm: string; examYear: string; examRollNo: string; institution: string } | null;
-  serverDate?: string;
 }
 
 export const StudentRegistrationForm = ({
   onSubmitSuccess,
   isSubmitting = false,
-  entrance,
-  serverDate,
 }: StudentRegistrationFormProps) => {
-  /* ── Myanmar digit helper ────────────────────────────────────────── */
-  const mm = ['၀', '၁', '၂', '၃', '၄', '၅', '၆', '၇', '၈', '၉'];
-  const toMM = (n: number) => String(n).replace(/[0-9]/g, (x) => mm[+x]);
+  /* ── Fetch entrance record from backend ───────────────────────── */
+  const {
+    data: entrance,
+    isLoading: isEntranceLoading,
+    isError: isEntranceError,
+  } = useEntranceQuery(true);
 
-  /* ── enrollment (read-only from server) ─────────────────────────── */
-  const enrollment = (() => {
-    // Format registrationDate from server ISO string or fall back to client date
-    const dateObj = serverDate ? new Date(serverDate) : new Date();
+  /* ── Myanmar digit helper ────────────────────────────────────────── */
+  const mm = ['၀', '၁', '၂', '၃', '၄', '၅', '၆', '၇', '၈', '၉'] as const;
+  const toMM = (n: number) =>
+    String(n).replace(/[0-9]/g, (d) => mm[+d]);
+
+  /* ── server date ─────────────────────────────────────────────────── */
+  const serverDate = new Date().toISOString();
+
+  /* ── enrollment (read-only, derived from entrance) ──────────────── */
+  const enrollment = useMemo(() => {
+    const dateObj = new Date(serverDate);
     const registrationDate = `${toMM(dateObj.getDate())}-${toMM(dateObj.getMonth() + 1)}-${toMM(dateObj.getFullYear())}`;
 
-    // Derive acYear: examYear e.g. "2025" → "၂၀၂၅-၂၀၂၆"
     const acYear = entrance?.examYear
       ? (() => {
           const y = parseInt(entrance.examYear, 10);
@@ -357,7 +363,6 @@ export const StudentRegistrationForm = ({
         })()
       : '၂၀၂၅-၂၀၂၆';
 
-    // admissionId: examRollNo from entrance record
     const admissionId = entrance?.examRollNo ?? 'နည်းပညာ-၃';
 
     return {
@@ -366,12 +371,13 @@ export const StudentRegistrationForm = ({
       acYear,
       admissionId,
     };
-  })();
+  }, [entrance, serverDate]);
 
   /* ── names ───────────────────────────────────────────────────────── */
-  // Student and father Myanmar names are read-only, pre-filled from entrance record
-  const nameMm = entrance?.applicantNameMm ?? '';
-  const fatherNameMm = entrance?.fatherNameMm ?? '';
+  // Student and father Myanmar names are read-only, pre-filled from entrance record.
+  // useState initializer runs once so user edits are never overwritten.
+  const [nameMm] = useState(() => entrance?.applicantNameMm ?? '');
+  const [fatherNameMm] = useState(() => entrance?.fatherNameMm ?? '');
   const [motherNameMm, setMotherNameMm] = useState('');
   const [nameEn, setNameEn] = useState('');
   const [fatherNameEn, setFatherNameEn] = useState('');
@@ -665,6 +671,40 @@ export const StudentRegistrationForm = ({
 
     onSubmitSuccess(payload);
   };
+
+  /* ─── loading / error guards ─────────────────────────────────── */
+  if (isEntranceLoading) {
+    return (
+      <div className='flex min-h-[400px] items-center justify-center'>
+        <div className='flex flex-col items-center gap-3'>
+          <div className='h-8 w-8 animate-spin rounded-full border-[3px] border-blue-600 border-t-transparent' />
+          <p className='text-sm font-medium tracking-wide text-gray-500'>
+            ခုံစာရင်းရယူနေပါသည်...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isEntranceError || !entrance) {
+    return (
+      <div className='flex min-h-[400px] items-center justify-center px-4'>
+        <div className='w-full max-w-md rounded-xl border border-red-200 bg-red-50 p-6 text-center'>
+          <div className='mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-500'>
+            <svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' strokeWidth={1.5} stroke='currentColor' className='w-6 h-6'>
+              <path strokeLinecap='round' strokeLinejoin='round' d='M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z' />
+            </svg>
+          </div>
+          <h3 className='text-base font-semibold text-red-700 mb-1'>
+            ခုံစာရင်း ရှာမတွေးပါ။
+          </h3>
+          <p className='text-sm text-red-600'>
+            ကျေးဇူးပြု၍ နောက်တစ်ကြိမ် ကြိုးစားပါ။
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   /* ─── JSX ─────────────────────────────────────────────────────── */
   return (
