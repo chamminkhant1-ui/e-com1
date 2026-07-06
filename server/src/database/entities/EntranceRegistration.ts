@@ -8,7 +8,6 @@ import {
   OneToMany,
 } from 'typeorm';
 import type { InstitutionType } from './types';
-import { EntranceClaim } from './EntranceClaim';
 
 @Entity({ name: 'entrance_registrations' })
 @Index('idx_entrance_exam_roll_no', ['examRollNo'])
@@ -63,9 +62,6 @@ export class EntranceRegistration {
    */
   @Column({ name: 'is_claimed', default: false })
   isClaimed!: boolean;
-
-  @OneToMany(() => EntranceClaim, (claim) => claim.entrance)
-  claims?: EntranceClaim[];
 
   @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
   createdAt!: Date;

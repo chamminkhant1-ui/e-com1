@@ -17,7 +17,6 @@ import { Account } from './Account';
 import { ParentProfile } from './ParentProfile';
 import { Address } from './Address';
 import { Photo } from './Photo';
-import { EntranceClaim } from './EntranceClaim';
 import { SemesterRegistration } from './SemesterRegistration';
 import { EntranceRegistration } from './EntranceRegistration';
 
@@ -93,9 +92,6 @@ export class StudentProfile {
 
   @OneToOne(() => Photo, (photo) => photo.student, { cascade: true })
   photo?: Photo;
-
-  @OneToMany(() => EntranceClaim, (claim) => claim.student)
-  entranceClaims?: EntranceClaim[];
 
   @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
   createdAt!: Date;

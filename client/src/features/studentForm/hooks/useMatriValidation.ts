@@ -16,8 +16,9 @@ export const useMatriValidation = (
   matriPlaceSelect: string,
   matriRollNumber: string,
   _onClearRollFields?: () => void, // Unused parameter, kept for signature compatibility
-  expectedIntakeYear = '၂၀၂၅',
-  expectedMatriPrefix = 'နဇယ',
+  expectedIntakeYear: string = '',
+  expectedMatriPrefix: string = '',
+  expectedMatriRollNo: string = '',
 ): MatriValidationResult => {
   const yearMsg =
     intakeYear && intakeYear !== expectedIntakeYear
@@ -27,10 +28,11 @@ export const useMatriValidation = (
   const rollMsg = (() => {
     if (!matriPlaceSelect) return '';
     if (matriPlaceSelect !== expectedMatriPrefix) {
+      console.log(expectedMatriPrefix);
       return '❌ ရွေးချယ်ထားသောအချက်အလက် မကိုက်ညီမှု မရှိပါ။';
     }
     if (!matriRollNumber) return '';
-    return toMyanmarDigits(matriRollNumber) !== '၂၇'
+    return toMyanmarDigits(matriRollNumber) !== expectedMatriRollNo
       ? '❌ ခုံနံပါတ်မှားယွင်းနေပါသည်။'
       : '';
   })();

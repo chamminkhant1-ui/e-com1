@@ -11,7 +11,7 @@ import { RaceSelector } from './RaceSelector';
 import type { AddressValue } from './AddressSelector';
 import { AddressSelector } from './AddressSelector';
 import { PhotoUpload } from './PhotoUpload';
-import { toMyanmarNumber } from '../utils/myanmarDigits';
+import { toMyanmarDigits, toMyanmarNumber } from '../utils/myanmarDigits';
 import { useEmailValidation } from '../hooks/useEmailValidation';
 import { useMatriValidation } from '../hooks/useMatriValidation';
 import { useEntranceQuery } from '@/features/entrance/hooks/useEntranceQueries';
@@ -38,6 +38,13 @@ const EMPTY_ADDR: AddressValue = {
 const GENDER_MAP: Record<string, 'M' | 'F' | 'Other'> = {
   ကျား: 'M',
   မ: 'F',
+};
+
+// convert myanmar digit
+const convertToMyanmarDigits = (value: string) => {
+  return value.replace(/[0-9]/g, (d) =>
+    String.fromCharCode(0x1040 + Number(d)),
+  );
 };
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -123,6 +130,9 @@ export const StudentRegistrationForm = ({
     matriPlaceSelect,
     matriRollNumber,
     clearRollFields,
+    entrance?.examYear?.toString() ?? '',
+    entrance?.examRollNo.split('-')[0] ?? '',
+    entrance?.examRollNo.split('-')[1] ?? '',
   );
 
   /* ── occupations ─────────────────────────────────────────────────── */
@@ -510,25 +520,16 @@ export const StudentRegistrationForm = ({
               </td>
               <td className={`${td} text-left`}>
                 <NrcInput
-                  variant='light'
                   value={studentNrc}
                   onChange={setStudentNrc}
                   expectedNrc={EXPECTED_STUDENT_NRC}
                 />
               </td>
               <td className={`${td} text-left`}>
-                <NrcInput
-                  variant='light'
-                  value={fatherNrc}
-                  onChange={setFatherNrc}
-                />
+                <NrcInput value={fatherNrc} onChange={setFatherNrc} />
               </td>
               <td className={`${td} text-left`}>
-                <NrcInput
-                  variant='light'
-                  value={motherNrc}
-                  onChange={setMotherNrc}
-                />
+                <NrcInput value={motherNrc} onChange={setMotherNrc} />
               </td>
             </tr>
 
@@ -538,22 +539,16 @@ export const StudentRegistrationForm = ({
                 လူမျိုး
               </td>
               <td className={`${td} text-left`}>
-                <RaceSelector
-                  variant='light'
-                  value={ethnicity}
-                  onChange={setEthnicity}
-                />
+                <RaceSelector value={ethnicity} onChange={setEthnicity} />
               </td>
               <td className={`${td} text-left`}>
                 <RaceSelector
-                  variant='light'
                   value={fatherEthnicity}
                   onChange={setFatherEthnicity}
                 />
               </td>
               <td className={`${td} text-left`}>
                 <RaceSelector
-                  variant='light'
                   value={motherEthnicity}
                   onChange={setMotherEthnicity}
                 />
@@ -718,7 +713,7 @@ export const StudentRegistrationForm = ({
                     onChange={(e) => {
                       const val = e.target.value;
                       setMatriPlaceSelect(val);
-                      if (val && val !== 'နဇယ') {
+                      if (val && val !== entrance?.examRollNo.split('-')[0]) {
                         clearRollFields();
                       }
                     }}
@@ -737,8 +732,14 @@ export const StudentRegistrationForm = ({
                   <input
                     type='text'
                     value={matriRollNumber}
-                    onChange={(e) => setMatriRollNumber(e.target.value)}
-                    disabled={!matriPlaceSelect || matriPlaceSelect !== 'နဇယ'}
+                    onChange={(e) =>
+                      setMatriRollNumber(toMyanmarDigits(e.target.value))
+                    }
+                    disabled={
+                      !matriPlaceSelect ||
+                      matriPlaceSelect.trim() !==
+                        entrance.examRollNo.split('-')[0]
+                    }
                     placeholder='၁၁'
                     className={`${cellInput} w-20`}
                     required
@@ -815,7 +816,6 @@ export const StudentRegistrationForm = ({
               </td>
               <td className={td} colSpan={3}>
                 <AddressSelector
-                  variant='light'
                   value={parentContact}
                   onChange={setParentContact}
                 />
@@ -858,7 +858,6 @@ export const StudentRegistrationForm = ({
               </td>
               <td className={td} colSpan={3}>
                 <AddressSelector
-                  variant='light'
                   value={studentContact}
                   onChange={setStudentContact}
                 />

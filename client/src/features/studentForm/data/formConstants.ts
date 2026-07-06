@@ -181,6 +181,7 @@ export const STATES = [
 
 /** Matriculation exam prefix codes */
 export const MATRI_PLACE_CODES = [
+  'ဆဆ',
   'ကခဖ',
   'ကတန',
   'ကန',
@@ -312,4 +313,11 @@ export const MATRI_PLACE_CODES = [
 ];
 
 /** Academic years */
-export const INTAKE_YEARS = ['၂၀၂၅', '၂၀၂၄'];
+const currentYear = new Date().getFullYear();
+
+const toMyanmarDigits = (num: number): string =>
+  num.toString().replace(/\d/g, (d) => String.fromCharCode(0x1040 + Number(d)));
+
+export const INTAKE_YEARS = Array.from({ length: 4 }, (_, i) =>
+  toMyanmarDigits(currentYear - i),
+);

@@ -7,7 +7,6 @@ export { AcademicYear } from './AcademicYear';
 export { Major } from './Major';
 export { Semester } from './Semester';
 export { EntranceRegistration } from './EntranceRegistration';
-export { EntranceClaim } from './EntranceClaim';
 export { StudentProfile } from './StudentProfile';
 export { ParentProfile } from './ParentProfile';
 export { Photo } from './Photo';
