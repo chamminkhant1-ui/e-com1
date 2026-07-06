@@ -25,7 +25,11 @@ export const AddressSelector = ({ value, onChange, error }: AddressSelectorProps
   const [townships, setTownships] = useState<string[]>([]);
 
   useEffect(() => {
-    if (!value.state) return;
+    if (!value.state) {
+      setDistricts([]);
+      setTownships([]);
+      return;
+    }
     let active = true;
     fetch(`/api/locations/districts/${encodeURIComponent(value.state)}`)
       .then((r) => r.json())
@@ -43,7 +47,10 @@ export const AddressSelector = ({ value, onChange, error }: AddressSelectorProps
   }, [value.state]);
 
   useEffect(() => {
-    if (!value.district || !value.state) return;
+    if (!value.district || !value.state) {
+      setTownships([]);
+      return;
+    }
     let active = true;
     fetch(
       `/api/locations/townships/${encodeURIComponent(value.state)}/${encodeURIComponent(value.district)}`,

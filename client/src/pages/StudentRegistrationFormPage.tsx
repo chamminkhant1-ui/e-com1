@@ -7,7 +7,7 @@ import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 export const StudentRegistrationFormPage = () => {
   const navigate = useNavigate();
-  const { isLoading: isAuthLoading } = useAuthUser();
+  const { user, isLoading: isAuthLoading } = useAuthUser();
   const [isSuccess, setIsSuccess] = useState(false);
   const [submittedData, setSubmittedData] = useState<unknown>(null);
   const [pageError, setPageError] = useState('');
@@ -22,6 +22,9 @@ export const StudentRegistrationFormPage = () => {
         if (res.ok) {
           setSubmittedData(data);
           setIsSuccess(true);
+          if (user?.id) {
+            localStorage.removeItem(`student_form_draft_${user.id}`);
+          }
         }
       },
       onError: (error) => {
