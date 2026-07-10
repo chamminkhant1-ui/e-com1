@@ -1,13 +1,9 @@
 import { useMemo } from 'react';
 import { Controller } from 'react-hook-form';
 import { useStudentFormContext } from '../hooks/useStudentForm';
-import {
-  RELIGIONS,
-  INTAKE_YEARS,
-  MATRI_PLACE_CODES,
-} from '../data/formConstants';
+import { RELIGIONS, INTAKE_YEARS, MATRI_PLACE_CODES, MYANMAR_RACES } from '../data/formConstants';
 import { NrcInput } from './NrcInput';
-import { RaceSelector } from './RaceSelector';
+
 import { AddressSelector } from './AddressSelector';
 import { PhotoUpload } from './PhotoUpload';
 import { toMyanmarDigits, toMyanmarNumber } from '../utils/myanmarDigits';
@@ -183,7 +179,7 @@ export const NrcRow = () => {
 
 /* ─── Race Row ──────────────────────────────────────────────────────── */
 export const RaceRow = () => {
-  const { form: { control } } = useStudentFormContext();
+  const { form: { register } } = useStudentFormContext();
 
   return (
     <tr>
@@ -191,31 +187,22 @@ export const RaceRow = () => {
         လူမျိုး
       </td>
       <td className={`${td} text-left`}>
-        <Controller
-          name='ethnicity'
-          control={control}
-          render={({ field }) => (
-            <RaceSelector value={field.value} onChange={field.onChange} />
-          )}
-        />
+        <select {...register('ethnicity')} className={`${cellSel} w-full`}>
+          <option value=''>---</option>
+          {MYANMAR_RACES.map((r) => <option key={r} value={r}>{r}</option>)}
+        </select>
       </td>
       <td className={`${td} text-left`}>
-        <Controller
-          name='fatherEthnicity'
-          control={control}
-          render={({ field }) => (
-            <RaceSelector value={field.value} onChange={field.onChange} />
-          )}
-        />
+        <select {...register('fatherEthnicity')} className={`${cellSel} w-full`}>
+          <option value=''>---</option>
+          {MYANMAR_RACES.map((r) => <option key={r} value={r}>{r}</option>)}
+        </select>
       </td>
       <td className={`${td} text-left`}>
-        <Controller
-          name='motherEthnicity'
-          control={control}
-          render={({ field }) => (
-            <RaceSelector value={field.value} onChange={field.onChange} />
-          )}
-        />
+        <select {...register('motherEthnicity')} className={`${cellSel} w-full`}>
+          <option value=''>---</option>
+          {MYANMAR_RACES.map((r) => <option key={r} value={r}>{r}</option>)}
+        </select>
       </td>
     </tr>
   );
@@ -284,8 +271,7 @@ export const ReligionRow = () => {
 
 /* ─── Personal Rows (DOB, Gender) ───────────────────────────────────── */
 export const PersonalRows = () => {
-  const { form: { register, watch } } = useStudentFormContext();
-  const gender = watch('gender');
+  const { form: { register } } = useStudentFormContext();
 
   return (
     <>
@@ -314,7 +300,6 @@ export const PersonalRows = () => {
               <input
                 type='radio'
                 value='ကျား'
-                checked={gender === 'ကျား'}
                 {...register('gender')}
                 className='w-4 h-4 accent-blue-600'
               />
@@ -324,7 +309,6 @@ export const PersonalRows = () => {
               <input
                 type='radio'
                 value='မ'
-                checked={gender === 'မ'}
                 {...register('gender')}
                 className='w-4 h-4 accent-blue-600'
               />
@@ -340,7 +324,7 @@ export const PersonalRows = () => {
 /* ─── Matriculation Rows ────────────────────────────────────────────── */
 export const MatriculationRows = () => {
   const {
-    form: { register, setValue, watch },
+    form: { register, watch },
     entrance,
     yearMsg,
     rollMsg,
@@ -416,14 +400,10 @@ export const MatriculationRows = () => {
               type='text'
               {...register('matriRollNumber', {
                 onChange: (e) => {
-                  setValue('matriRollNumber', toMyanmarDigits(e.target.value));
+                  e.target.value = toMyanmarDigits(e.target.value);
                 },
               })}
-              disabled={
-                !matriPlaceSelect ||
-                matriPlaceSelect.trim() !==
-                  entrance?.examRollNo.split('-')[0]
-              }
+              disabled={!matriPlaceSelect}
               placeholder='၁၁'
               className={`${cellInput} w-20`}
               required
@@ -486,7 +466,12 @@ export const ParentOccupationRow = () => {
 
 /* ─── Contact Rows ──────────────────────────────────────────────────── */
 export const ContactRows = () => {
-  const { form: { register, control }, emailMsg } = useStudentFormContext();
+  const {
+    form: { register, control },
+    emailMsg,
+    parentPhoneMsg,
+    studentPhoneMsg,
+  } = useStudentFormContext();
 
   return (
     <>
@@ -523,14 +508,27 @@ export const ContactRows = () => {
       <tr style={{ height: 50 }}>
         <td className={`${td} text-left`}>ဖုန်းနံပါတ်</td>
         <td className={td} colSpan={3}>
-          <input
-            type='tel'
-            {...register('parentPhone')}
-            placeholder='091234567'
-            pattern='\d{7,11}'
-            required
-            className={`${cellInput} w-48`}
-          />
+          <div className='flex items-center gap-2 pl-2'>
+            <input
+              type='tel'
+              {...register('parentPhone', {
+                onChange: (e) => {
+                  let val = e.target.value.replace(/[^0-9]/g, '');
+                  if (val.length > 11) val = val.slice(0, 11);
+                  e.target.value = val;
+                },
+              })}
+              placeholder='091234567'
+              pattern='[0-9]{8,11}'
+              required
+              className={`${cellInput} w-48`}
+            />
+            {parentPhoneMsg.text && (
+              <span className={`text-xs font-semibold ${parentPhoneMsg.color}`}>
+                {parentPhoneMsg.text}
+              </span>
+            )}
+          </div>
         </td>
       </tr>
 
@@ -567,14 +565,27 @@ export const ContactRows = () => {
       <tr style={{ height: 50 }}>
         <td className={`${td} text-left`}>ဖုန်းနံပါတ်</td>
         <td className={td} colSpan={3}>
-          <input
-            type='tel'
-            {...register('phoneNumber')}
-            placeholder='091234567'
-            pattern='\d{7,11}'
-            required
-            className={`${cellInput} w-48`}
-          />
+          <div className='flex items-center gap-2 pl-2'>
+            <input
+              type='tel'
+              {...register('phoneNumber', {
+                onChange: (e) => {
+                  let val = e.target.value.replace(/[^0-9]/g, '');
+                  if (val.length > 11) val = val.slice(0, 11);
+                  e.target.value = val;
+                },
+              })}
+              placeholder='091234567'
+              pattern='[0-9]{8,11}'
+              required
+              className={`${cellInput} w-48`}
+            />
+            {studentPhoneMsg.text && (
+              <span className={`text-xs font-semibold ${studentPhoneMsg.color}`}>
+                {studentPhoneMsg.text}
+              </span>
+            )}
+          </div>
         </td>
       </tr>
 

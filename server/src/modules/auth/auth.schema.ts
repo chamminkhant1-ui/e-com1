@@ -163,7 +163,9 @@ export const AccountSchema = {
       township: z.string().min(1),
       address: z.string().min(1),
     }),
-    parentPhone: z.string().min(1, 'Parent phone is required'),
+    parentPhone: z.string()
+      .min(1, 'Parent phone is required')
+      .regex(/^[0-9]{8,11}$/, 'Parent phone must be 8 to 11 English digits'),
 
     // ── Student contact ───────────────────────────────────────────────────
     student_contact: z.object({
@@ -172,7 +174,9 @@ export const AccountSchema = {
       township: z.string().min(1),
       address: z.string().min(1),
     }),
-    phoneNumber: z.string().min(1, 'Student phone is required'),
+    phoneNumber: z.string()
+      .min(1, 'Student phone is required')
+      .regex(/^[0-9]{8,11}$/, 'Student phone must be 8 to 11 English digits'),
     std_email: z.string().email('Must be a valid email').optional().or(z.literal('')),
   }),
 };

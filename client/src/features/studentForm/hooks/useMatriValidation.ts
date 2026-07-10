@@ -27,12 +27,12 @@ export const useMatriValidation = (
 
   const rollMsg = (() => {
     if (!matriPlaceSelect) return '';
-    if (matriPlaceSelect !== expectedMatriPrefix) {
+    if (matriPlaceSelect.trim() !== expectedMatriPrefix.trim()) {
       console.log(expectedMatriPrefix);
       return '❌ ရွေးချယ်ထားသောအချက်အလက် မကိုက်ညီမှု မရှိပါ။';
     }
     if (!matriRollNumber) return '';
-    return toMyanmarDigits(matriRollNumber) !== expectedMatriRollNo
+    return toMyanmarDigits(matriRollNumber).trim() !== expectedMatriRollNo.trim()
       ? '❌ ခုံနံပါတ်မှားယွင်းနေပါသည်။'
       : '';
   })();

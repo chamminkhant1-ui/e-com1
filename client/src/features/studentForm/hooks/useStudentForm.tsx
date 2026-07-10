@@ -6,8 +6,9 @@ import { useAuthUser } from '@/features/auth/hooks/useAuthUser';
 import { useEntranceQuery } from '@/features/entrance/hooks/useEntranceQueries';
 import { useMatriValidation } from './useMatriValidation';
 import { useEmailValidation } from './useEmailValidation';
+import { usePhoneValidation } from './usePhoneValidation';
 import type { NrcValue } from '../components/NrcInput';
-import type { RaceValue } from '../components/RaceSelector';
+
 import type { AddressValue } from '../components/AddressSelector';
 
 export interface StudentFormValues {
@@ -18,9 +19,9 @@ export interface StudentFormValues {
   studentNrc: NrcValue;
   fatherNrc: NrcValue;
   motherNrc: NrcValue;
-  ethnicity: RaceValue;
-  fatherEthnicity: RaceValue;
-  motherEthnicity: RaceValue;
+  ethnicity: string;
+  fatherEthnicity: string;
+  motherEthnicity: string;
   religion: string;
   fatherReligion: string;
   motherReligion: string;
@@ -47,9 +48,9 @@ export const DEFAULT_FORM_VALUES: StudentFormValues = {
   studentNrc: { region: '', city: '', prefix: '', number: '' },
   fatherNrc: { region: '', city: '', prefix: '', number: '' },
   motherNrc: { region: '', city: '', prefix: '', number: '' },
-  ethnicity: { r1: '', r2: '', r3: '' },
-  fatherEthnicity: { r1: '', r2: '', r3: '' },
-  motherEthnicity: { r1: '', r2: '', r3: '' },
+  ethnicity: '',
+  fatherEthnicity: '',
+  motherEthnicity: '',
   religion: '',
   fatherReligion: '',
   motherReligion: '',
@@ -80,6 +81,8 @@ interface StudentFormContextType {
   formError: string;
   setFormError: (err: string) => void;
   emailMsg: { text: string; color: string };
+  parentPhoneMsg: { text: string; color: string };
+  studentPhoneMsg: { text: string; color: string };
   yearMsg: string;
   rollMsg: string;
   clearRollFields: () => void;
@@ -149,6 +152,8 @@ export const StudentFormProvider = ({ children }: { children: ReactNode }) => {
   const matriPlaceSelect = watch('matriPlaceSelect');
   const matriRollNumber = watch('matriRollNumber');
   const stdEmail = watch('stdEmail');
+  const parentPhone = watch('parentPhone');
+  const phoneNumber = watch('phoneNumber');
 
   const clearRollFields = useCallback(() => {
     setValue('highSchoolName', '');
@@ -162,8 +167,8 @@ export const StudentFormProvider = ({ children }: { children: ReactNode }) => {
     matriRollNumber ?? '',
     clearRollFields,
     entrance?.examYear?.toString() ?? '',
-    entrance?.examRollNo.split('-')[0] ?? '',
-    entrance?.examRollNo.split('-')[1] ?? '',
+    (entrance?.examRollNo || '').split('-')[0]?.trim() ?? '',
+    (entrance?.examRollNo || '').split('-')[1]?.trim() ?? '',
   ).yearMsg;
 
   const rollMsg = useMatriValidation(
@@ -172,11 +177,13 @@ export const StudentFormProvider = ({ children }: { children: ReactNode }) => {
     matriRollNumber ?? '',
     clearRollFields,
     entrance?.examYear?.toString() ?? '',
-    entrance?.examRollNo.split('-')[0] ?? '',
-    entrance?.examRollNo.split('-')[1] ?? '',
+    (entrance?.examRollNo || '').split('-')[0]?.trim() ?? '',
+    (entrance?.examRollNo || '').split('-')[1]?.trim() ?? '',
   ).rollMsg;
 
   const emailMsg = useEmailValidation(stdEmail ?? '');
+  const parentPhoneMsg = usePhoneValidation(parentPhone ?? '');
+  const studentPhoneMsg = usePhoneValidation(phoneNumber ?? '');
 
   const onSubmitHandler = (e: React.FormEvent, onSubmitSuccess: (payload: any) => void) => {
     e.preventDefault();
@@ -263,8 +270,13 @@ export const StudentFormProvider = ({ children }: { children: ReactNode }) => {
         setFormError('မိဘ လိပ်စာ အပြည့်အစုံ ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
         return;
       }
+      const phoneRegex = /^[0-9]{8,11}$/;
       if (!values.parentPhone.trim()) {
         setFormError('မိဘ ဖုန်းနံပါတ် ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
+        return;
+      }
+      if (!phoneRegex.test(values.parentPhone)) {
+        setFormError('မိဘ ဖုန်းနံပါတ်သည် အင်္ဂလိပ်ဂဏန်း ၈ လုံးမှ ၁၁ လုံးအထိသာ ဖြစ်ရပါမည်။ ❌');
         return;
       }
       if (!addrFilled(values.studentContact)) {
@@ -273,6 +285,10 @@ export const StudentFormProvider = ({ children }: { children: ReactNode }) => {
       }
       if (!values.phoneNumber.trim()) {
         setFormError('ကျောင်းသား/သူ ဖုန်းနံပါတ် ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
+        return;
+      }
+      if (!phoneRegex.test(values.phoneNumber)) {
+        setFormError('ကျောင်းသား/သူ ဖုန်းနံပါတ်သည် အင်္ဂလိပ်ဂဏန်း ၈ လုံးမှ ၁၁ လုံးအထိသာ ဖြစ်ရပါမည်။ ❌');
         return;
       }
 
@@ -333,6 +349,8 @@ export const StudentFormProvider = ({ children }: { children: ReactNode }) => {
         formError,
         setFormError,
         emailMsg,
+        parentPhoneMsg,
+        studentPhoneMsg,
         yearMsg,
         rollMsg,
         clearRollFields,

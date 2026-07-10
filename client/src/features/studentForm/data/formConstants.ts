@@ -182,6 +182,11 @@ export const STATES = [
 /** Matriculation exam prefix codes */
 export const MATRI_PLACE_CODES = [
   'ဆဆ',
+  'ဆပလ',
+  'မမ',
+  'ဒနတ',
+  'လဘလ',
+  'မမရ',
   'ကခဖ',
   'ကတန',
   'ကန',
