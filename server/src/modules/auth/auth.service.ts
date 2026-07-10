@@ -57,12 +57,12 @@ export class AuthService extends BaseService<Account> {
   async verifyEntrance(
     data: AccountVerifyEntranceInput,
   ): Promise<EntranceMatchDto> {
-    const examRollNo = buildExamRollNo(data.rollCode, data.rollNumber);
+    const matricExamRollNo = buildExamRollNo(data.rollCode, data.rollNumber);
 
     const entrance = await EntranceRepository.findOne({
       where: {
         examYear: data.examYear.trim(),
-        examRollNo,
+        matricExamRollNo,
         fatherNameMm: data.fatherName.trim(),
       },
       select: [
@@ -70,7 +70,7 @@ export class AuthService extends BaseService<Account> {
         'applicantNameMm',
         'fatherNameMm',
         'examYear',
-        'examRollNo',
+        'matricExamRollNo',
         'institution',
         'totalScore',
       ],
@@ -88,7 +88,7 @@ export class AuthService extends BaseService<Account> {
       applicantNameMm: entrance.applicantNameMm,
       fatherNameMm: entrance.fatherNameMm,
       examYear: entrance.examYear,
-      examRollNo: entrance.examRollNo,
+      matricExamRollNo: entrance.matricExamRollNo,
       institution: entrance.institution,
       totalScore: Number(entrance.totalScore),
     };
@@ -103,8 +103,9 @@ export class AuthService extends BaseService<Account> {
    * If an existing account with the same email is unverified, it will be updated in-place.
    */
   async register(data: AccountRegisterInput): Promise<Account> {
-    const { examYear, rollCode, rollNumber, fatherName, email, password } = data;
-    const examRollNo = buildExamRollNo(rollCode, rollNumber);
+    const { examYear, rollCode, rollNumber, fatherName, email, password } =
+      data;
+    const matricExamRollNo = buildExamRollNo(rollCode, rollNumber);
 
     // 1. Hash password and OTP
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
@@ -124,7 +125,7 @@ export class AuthService extends BaseService<Account> {
       const entrance = await entranceRepo.findOne({
         where: {
           examYear: examYear.trim(),
-          examRollNo,
+          matricExamRollNo,
           fatherNameMm: fatherName.trim(),
         },
       });
@@ -196,7 +197,6 @@ export class AuthService extends BaseService<Account> {
         text: `Your OTP is: ${plaintextOtp}. It expires in 10 minutes.`,
       })
       .catch((err) => console.error('Error sending OTP email:', err));
-
 
     // 4. Clean sensitive data
     savedAccount.password = '';
@@ -315,7 +315,9 @@ export class AuthService extends BaseService<Account> {
    * Prevents user enumeration by returning generic response if email is missing or verified.
    */
   async resetOtp(email: string): Promise<{ message: string }> {
-    const successMsg = { message: 'A new OTP has been sent to your email address.' };
+    const successMsg = {
+      message: 'A new OTP has been sent to your email address.',
+    };
 
     const account = await this.accountRepo.findOne({ where: { email } });
 
@@ -369,7 +371,8 @@ export class AuthService extends BaseService<Account> {
       .where('account.email = :email', { email })
       .getOne();
 
-    const dummyHash = '$2b$10$abcdefghijklmnopqrstuvwxyzaaaaaaaaaaaaaaaaaaaaaaaaa';
+    const dummyHash =
+      '$2b$10$abcdefghijklmnopqrstuvwxyzaaaaaaaaaaaaaaaaaaaaaaaaa';
 
     if (!account) {
       // Prevent timing attack
@@ -398,7 +401,9 @@ export class AuthService extends BaseService<Account> {
     return account;
   }
 
-  async verifyResetOtp(data: AccountVerifyResetOtpInput): Promise<{ message: string }> {
+  async verifyResetOtp(
+    data: AccountVerifyResetOtpInput,
+  ): Promise<{ message: string }> {
     const { email, otp } = data;
 
     const account = await this.accountRepo
@@ -415,11 +420,15 @@ export class AuthService extends BaseService<Account> {
       account.otpCode = null;
       account.otpExpiresAt = null;
       await this.accountRepo.save(account);
-      throw AppError.badRequest('OTP code has expired. Please request a new one.');
+      throw AppError.badRequest(
+        'OTP code has expired. Please request a new one.',
+      );
     }
 
     if (!account.otpCode) {
-      throw AppError.badRequest('No password reset requested or OTP has expired.');
+      throw AppError.badRequest(
+        'No password reset requested or OTP has expired.',
+      );
     }
 
     const hashedInputOtp = hashOtp(otp);
@@ -432,7 +441,10 @@ export class AuthService extends BaseService<Account> {
   }
 
   async forgotPassword(email: string): Promise<{ message: string }> {
-    const successMsg = { message: 'If this email exists in our system, a password reset code has been sent.' };
+    const successMsg = {
+      message:
+        'If this email exists in our system, a password reset code has been sent.',
+    };
 
     const account = await this.accountRepo.findOne({ where: { email } });
 
@@ -465,7 +477,9 @@ export class AuthService extends BaseService<Account> {
         html: emailHtml,
         text: `Your password reset OTP is: ${plaintextOtp}. It expires in 10 minutes.`,
       })
-      .catch((err) => console.error('Error sending password reset email:', err));
+      .catch((err) =>
+        console.error('Error sending password reset email:', err),
+      );
 
     account.otpCode = otpHash;
     account.otpExpiresAt = otpExpiresAt;
@@ -474,7 +488,9 @@ export class AuthService extends BaseService<Account> {
     return successMsg;
   }
 
-  async resetPassword(data: AccountResetPasswordInput): Promise<{ message: string }> {
+  async resetPassword(
+    data: AccountResetPasswordInput,
+  ): Promise<{ message: string }> {
     const { email, otp, password } = data;
 
     const account = await this.accountRepo
@@ -491,11 +507,15 @@ export class AuthService extends BaseService<Account> {
       account.otpCode = null;
       account.otpExpiresAt = null;
       await this.accountRepo.save(account);
-      throw AppError.badRequest('OTP code has expired. Please request a new one.');
+      throw AppError.badRequest(
+        'OTP code has expired. Please request a new one.',
+      );
     }
 
     if (!account.otpCode) {
-      throw AppError.badRequest('No password reset requested or OTP has expired.');
+      throw AppError.badRequest(
+        'No password reset requested or OTP has expired.',
+      );
     }
 
     const hashedInputOtp = hashOtp(otp);
@@ -513,7 +533,10 @@ export class AuthService extends BaseService<Account> {
 
     await this.accountRepo.save(account);
 
-    return { message: 'Password reset successful. You can now login with your new password.' };
+    return {
+      message:
+        'Password reset successful. You can now login with your new password.',
+    };
   }
 
   async logoutAll(accountId: number): Promise<Account> {
@@ -547,10 +570,11 @@ export class AuthService extends BaseService<Account> {
 
     // Map Myanmar gender label to DB enum
     const genderMap: Record<string, 'M' | 'F' | 'Other'> = {
-      'ကျား': 'M',
-      'မ': 'F',
+      ကျား: 'M',
+      မ: 'F',
     };
-    const gender: 'M' | 'F' | 'Other' = genderMap[data.gender] ?? (data.gender as 'M' | 'F' | 'Other');
+    const gender: 'M' | 'F' | 'Other' =
+      genderMap[data.gender] ?? (data.gender as 'M' | 'F' | 'Other');
 
     // Fetch student's account to get the associated entrance ID
     const account = await this.accountRepo.findOne({
@@ -570,13 +594,17 @@ export class AuthService extends BaseService<Account> {
       const districtRepo = manager.getRepository(District);
       const townshipRepo = manager.getRepository(Township);
 
-      const state = await stateRepo.findOne({ where: { nameMm: contact.state } });
-      if (!state) throw AppError.badRequest(`State not found: ${contact.state}`);
+      const state = await stateRepo.findOne({
+        where: { nameMm: contact.state },
+      });
+      if (!state)
+        throw AppError.badRequest(`State not found: ${contact.state}`);
 
       const district = await districtRepo.findOne({
         where: { stateId: state.stateId, nameMm: contact.district },
       });
-      if (!district) throw AppError.badRequest(`District not found: ${contact.district}`);
+      if (!district)
+        throw AppError.badRequest(`District not found: ${contact.district}`);
 
       const township = await townshipRepo.findOne({
         where: {
@@ -585,7 +613,8 @@ export class AuthService extends BaseService<Account> {
           nameMm: contact.township,
         },
       });
-      if (!township) throw AppError.badRequest(`Township not found: ${contact.township}`);
+      if (!township)
+        throw AppError.badRequest(`Township not found: ${contact.township}`);
 
       return {
         stateId: state.stateId,
@@ -600,13 +629,23 @@ export class AuthService extends BaseService<Account> {
       const addressRepo = manager.getRepository(Address);
 
       // -- Resolve location IDs for both addresses --
-      const studentLocIds = await resolveLocationIds(manager, data.student_contact);
-      const parentLocIds = await resolveLocationIds(manager, data.parent_contact);
+      const studentLocIds = await resolveLocationIds(
+        manager,
+        data.student_contact,
+      );
+      const parentLocIds = await resolveLocationIds(
+        manager,
+        data.parent_contact,
+      );
 
       // -- Upsert StudentProfile --
-      let profile = await studentProfileRepo.findOne({ where: { studentId: accountId } });
+      let profile = await studentProfileRepo.findOne({
+        where: { studentId: accountId },
+      });
       if (!profile) {
-        profile = studentProfileRepo.create({ studentId: accountId } as Partial<StudentProfile> as StudentProfile);
+        profile = studentProfileRepo.create({
+          studentId: accountId,
+        } as Partial<StudentProfile> as StudentProfile);
       }
 
       profile.nameMm = data.nameMm;
@@ -629,7 +668,9 @@ export class AuthService extends BaseService<Account> {
         where: { studentId: accountId },
       });
       if (!parentProfile) {
-        parentProfile = parentProfileRepo.create({ studentId: accountId } as Partial<ParentProfile> as ParentProfile);
+        parentProfile = parentProfileRepo.create({
+          studentId: accountId,
+        } as Partial<ParentProfile> as ParentProfile);
       }
 
       parentProfile.fatherNameMm = data.fatherNameMm;
@@ -650,8 +691,14 @@ export class AuthService extends BaseService<Account> {
 
       // -- Upsert Address records --
       // Delete existing 'current' and 'parent' addresses to replace them
-      await addressRepo.delete({ student: { studentId: accountId }, type: 'current' });
-      await addressRepo.delete({ student: { studentId: accountId }, type: 'parent' });
+      await addressRepo.delete({
+        student: { studentId: accountId },
+        type: 'current',
+      });
+      await addressRepo.delete({
+        student: { studentId: accountId },
+        type: 'parent',
+      });
 
       // Student current address
       const studentAddr = addressRepo.create({

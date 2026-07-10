@@ -10,7 +10,7 @@ import { readSheetRows } from './read';
 // 0: စဉ်                           (row no)
 // 1: ...အောင်မြင်သည့်ခုနှစ်       (exam year)       -> examYear
 // 2: နည်းပညာ/ကွန်ပျူတာ            (institution)     -> institution enum
-// 3: ...ခုံအမှတ်                    (exam roll no)    -> examRollNo
+// 3: ...ခုံအမှတ်                    (exam roll no)    -> matricExamRollNo
 // 4: အမည်(မြန်မာ)                  (applicant name)  -> applicantNameMm
 // 5: အဘအမည်(မြန်မာ)              (father name)     -> fatherNameMm
 // 6: ...ကတ်ပြားအမှတ်               (NRC)             -> nrcNumber
@@ -62,7 +62,7 @@ async function main() {
     return Object.assign(new EntranceRegistration(), {
       examYear: String(row[1] ?? '').trim(),
       institution,
-      examRollNo: String(row[3] ?? '').trim(),
+      matricExamRollNo: String(row[3] ?? '').trim(),
       applicantNameMm: String(row[4] ?? '').trim(),
       fatherNameMm: String(row[5] ?? '').trim(),
       nrcNumber: String(row[6] ?? '').trim(),

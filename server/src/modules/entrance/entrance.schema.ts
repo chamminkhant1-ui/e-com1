@@ -7,7 +7,7 @@ import { z } from 'zod';
 export const EntranceDtoSchema = z.object({
   entranceId: z.number(),
   examYear: z.string(),
-  examRollNo: z.string(),
+  matricExamRollNo: z.string(),
   applicantNameMm: z.string(),
   fatherNameMm: z.string(),
   nrcNumber: z.string(),

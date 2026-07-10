@@ -5,7 +5,7 @@
 export interface EntranceRecord {
   entranceId: number;
   examYear: string;
-  examRollNo: string;
+  matricExamRollNo: string;
   applicantNameMm: string;
   fatherNameMm: string;
   nrcNumber: string;

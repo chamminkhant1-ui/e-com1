@@ -25,7 +25,7 @@ export interface EntranceMatchInfo {
   applicantNameMm: string;
   fatherNameMm: string;
   examYear: string;
-  examRollNo: string;
+  matricExamRollNo: string;
   institution: 'computer' | 'technology';
   totalScore: number;
 }

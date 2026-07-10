@@ -1,4 +1,10 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from 'react';
 import type { ReactNode } from 'react';
 import { useForm } from 'react-hook-form';
 import type { UseFormReturn } from 'react-hook-form';
@@ -86,7 +92,10 @@ interface StudentFormContextType {
   yearMsg: string;
   rollMsg: string;
   clearRollFields: () => void;
-  onSubmit: (e: React.FormEvent, onSubmitSuccess: (payload: any) => void) => void;
+  onSubmit: (
+    e: React.FormEvent,
+    onSubmitSuccess: (payload: any) => void,
+  ) => void;
 }
 
 const StudentFormContext = createContext<StudentFormContextType | null>(null);
@@ -167,8 +176,8 @@ export const StudentFormProvider = ({ children }: { children: ReactNode }) => {
     matriRollNumber ?? '',
     clearRollFields,
     entrance?.examYear?.toString() ?? '',
-    (entrance?.examRollNo || '').split('-')[0]?.trim() ?? '',
-    (entrance?.examRollNo || '').split('-')[1]?.trim() ?? '',
+    (entrance?.matricExamRollNo || '').split('-')[0]?.trim() ?? '',
+    (entrance?.matricExamRollNo || '').split('-')[1]?.trim() ?? '',
   ).yearMsg;
 
   const rollMsg = useMatriValidation(
@@ -177,21 +186,28 @@ export const StudentFormProvider = ({ children }: { children: ReactNode }) => {
     matriRollNumber ?? '',
     clearRollFields,
     entrance?.examYear?.toString() ?? '',
-    (entrance?.examRollNo || '').split('-')[0]?.trim() ?? '',
-    (entrance?.examRollNo || '').split('-')[1]?.trim() ?? '',
+    (entrance?.matricExamRollNo || '').split('-')[0]?.trim() ?? '',
+    (entrance?.matricExamRollNo || '').split('-')[1]?.trim() ?? '',
   ).rollMsg;
 
   const emailMsg = useEmailValidation(stdEmail ?? '');
   const parentPhoneMsg = usePhoneValidation(parentPhone ?? '');
   const studentPhoneMsg = usePhoneValidation(phoneNumber ?? '');
 
-  const onSubmitHandler = (e: React.FormEvent, onSubmitSuccess: (payload: any) => void) => {
+  const onSubmitHandler = (
+    e: React.FormEvent,
+    onSubmitSuccess: (payload: any) => void,
+  ) => {
     e.preventDefault();
     setFormError('');
 
     handleSubmit((values) => {
       // Validation warning/error checks
-      if (values.stdEmail && emailMsg.text && emailMsg.color.includes('text-red-600')) {
+      if (
+        values.stdEmail &&
+        emailMsg.text &&
+        emailMsg.color.includes('text-red-600')
+      ) {
         setFormError('အီးမေးလ်ပုံစံ မှားယွင်းနေပါသည်။ ❌');
         return;
       }
@@ -276,11 +292,15 @@ export const StudentFormProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
       if (!phoneRegex.test(values.parentPhone)) {
-        setFormError('မိဘ ဖုန်းနံပါတ်သည် အင်္ဂလိပ်ဂဏန်း ၈ လုံးမှ ၁၁ လုံးအထိသာ ဖြစ်ရပါမည်။ ❌');
+        setFormError(
+          'မိဘ ဖုန်းနံပါတ်သည် အင်္ဂလိပ်ဂဏန်း ၈ လုံးမှ ၁၁ လုံးအထိသာ ဖြစ်ရပါမည်။ ❌',
+        );
         return;
       }
       if (!addrFilled(values.studentContact)) {
-        setFormError('ကျောင်းသား/သူ လိပ်စာ အပြည့်အစုံ ဖြည့်ရန် လိုအပ်ပါသည်။ ❌');
+        setFormError(
+          'ကျောင်းသား/သူ လိပ်စာ အပြည့်အစုံ ဖြည့်ရန် လိုအပ်ပါသည်။ ❌',
+        );
         return;
       }
       if (!values.phoneNumber.trim()) {
@@ -288,7 +308,9 @@ export const StudentFormProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
       if (!phoneRegex.test(values.phoneNumber)) {
-        setFormError('ကျောင်းသား/သူ ဖုန်းနံပါတ်သည် အင်္ဂလိပ်ဂဏန်း ၈ လုံးမှ ၁၁ လုံးအထိသာ ဖြစ်ရပါမည်။ ❌');
+        setFormError(
+          'ကျောင်းသား/သူ ဖုန်းနံပါတ်သည် အင်္ဂလိပ်ဂဏန်း ၈ လုံးမှ ၁၁ လုံးအထိသာ ဖြစ်ရပါမည်။ ❌',
+        );
         return;
       }
 
@@ -365,7 +387,9 @@ export const StudentFormProvider = ({ children }: { children: ReactNode }) => {
 export const useStudentFormContext = () => {
   const context = useContext(StudentFormContext);
   if (!context) {
-    throw new Error('useStudentFormContext must be used within StudentFormProvider');
+    throw new Error(
+      'useStudentFormContext must be used within StudentFormProvider',
+    );
   }
   return context;
 };

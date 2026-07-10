@@ -46,7 +46,7 @@ export async function buildAuthUserDto(account: Account): Promise<AuthUserDto> {
         'applicantNameMm',
         'fatherNameMm',
         'examYear',
-        'examRollNo',
+        'matricExamRollNo',
         'institution',
         'totalScore',
       ],
@@ -57,7 +57,7 @@ export async function buildAuthUserDto(account: Account): Promise<AuthUserDto> {
         applicantNameMm: entrance.applicantNameMm,
         fatherNameMm: entrance.fatherNameMm,
         examYear: entrance.examYear,
-        examRollNo: entrance.examRollNo,
+        matricExamRollNo: entrance.matricExamRollNo,
         institution: entrance.institution as 'computer' | 'technology',
         totalScore: Number(entrance.totalScore),
       };

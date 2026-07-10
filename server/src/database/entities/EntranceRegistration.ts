@@ -10,9 +10,9 @@ import {
 import type { InstitutionType } from './types';
 
 @Entity({ name: 'entrance_registrations' })
-@Index('idx_entrance_exam_roll_no', ['examRollNo'])
+@Index('idx_entrance_exam_roll_no', ['matricExamRollNo'])
 @Index('idx_entrance_nrc', ['nrcNumber'])
-@Index('idx_entrance_lookup', ['examYear', 'examRollNo'])
+@Index('idx_entrance_lookup', ['examYear', 'matricExamRollNo'])
 export class EntranceRegistration {
   @PrimaryGeneratedColumn({ name: 'entrance_id' })
   entranceId!: number;
@@ -28,7 +28,7 @@ export class EntranceRegistration {
   institution!: InstitutionType;
 
   @Column({ length: 100, name: 'exam_roll_no', unique: true })
-  examRollNo!: string;
+  matricExamRollNo!: string;
 
   @Column({ length: 255, name: 'applicant_name_mm' })
   applicantNameMm!: string;

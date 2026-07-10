@@ -31,7 +31,7 @@ export class EntranceService {
       select: [
         'entranceId',
         'examYear',
-        'examRollNo',
+        'matricExamRollNo',
         'applicantNameMm',
         'fatherNameMm',
         'nrcNumber',
@@ -49,7 +49,7 @@ export class EntranceService {
     return {
       entranceId: entrance.entranceId,
       examYear: entrance.examYear,
-      examRollNo: entrance.examRollNo,
+      matricExamRollNo: entrance.matricExamRollNo,
       applicantNameMm: entrance.applicantNameMm,
       fatherNameMm: entrance.fatherNameMm,
       nrcNumber: entrance.nrcNumber,

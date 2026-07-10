@@ -41,12 +41,16 @@ export const AccountSchema = {
     rollNumber: z.string().min(1, 'Roll number is required'),
     fatherName: z.string().min(1, 'Father name is required'),
     email: baseAccountFields.email,
-    password: z.string()
+    password: z
+      .string()
       .min(8, 'Password must be at least 8 characters long')
       .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
       .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
       .regex(/[0-9]/, 'Password must contain at least one digit')
-      .regex(/[^a-zA-Z0-9]/, 'Password must contain at least one special character'),
+      .regex(
+        /[^a-zA-Z0-9]/,
+        'Password must contain at least one special character',
+      ),
   }),
 
   // LOGIN: User provides email and plaintext password
@@ -81,12 +85,16 @@ export const AccountSchema = {
   resetPassword: z.object({
     email: baseAccountFields.email,
     otp: z.string().length(6, 'OTP must be 6 digits'),
-    password: z.string()
+    password: z
+      .string()
       .min(8, 'Password must be at least 8 characters long')
       .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
       .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
       .regex(/[0-9]/, 'Password must contain at least one digit')
-      .regex(/[^a-zA-Z0-9]/, 'Password must contain at least one special character'),
+      .regex(
+        /[^a-zA-Z0-9]/,
+        'Password must contain at least one special character',
+      ),
   }),
 
   // -----------------------------------------
@@ -134,8 +142,16 @@ export const AccountSchema = {
 
     // ── Race (r1 = main race, r2/r3 optional sub-race) ──────────────────
     ethnicity: z.object({ r1: z.string(), r2: z.string(), r3: z.string() }),
-    fatherEthnicity: z.object({ r1: z.string(), r2: z.string(), r3: z.string() }),
-    motherEthnicity: z.object({ r1: z.string(), r2: z.string(), r3: z.string() }),
+    fatherEthnicity: z.object({
+      r1: z.string(),
+      r2: z.string(),
+      r3: z.string(),
+    }),
+    motherEthnicity: z.object({
+      r1: z.string(),
+      r2: z.string(),
+      r3: z.string(),
+    }),
 
     // ── Religion ─────────────────────────────────────────────────────────
     religion: z.string().min(1, 'Student religion is required'),
@@ -163,7 +179,8 @@ export const AccountSchema = {
       township: z.string().min(1),
       address: z.string().min(1),
     }),
-    parentPhone: z.string()
+    parentPhone: z
+      .string()
       .min(1, 'Parent phone is required')
       .regex(/^[0-9]{8,11}$/, 'Parent phone must be 8 to 11 English digits'),
 
@@ -174,22 +191,35 @@ export const AccountSchema = {
       township: z.string().min(1),
       address: z.string().min(1),
     }),
-    phoneNumber: z.string()
+    phoneNumber: z
+      .string()
       .min(1, 'Student phone is required')
       .regex(/^[0-9]{8,11}$/, 'Student phone must be 8 to 11 English digits'),
-    std_email: z.string().email('Must be a valid email').optional().or(z.literal('')),
+    std_email: z
+      .string()
+      .email('Must be a valid email')
+      .optional()
+      .or(z.literal('')),
   }),
 };
 
 // 4. Export Types for Auth
-export type AccountVerifyEntranceInput = z.infer<typeof AccountSchema.verifyEntrance>;
+export type AccountVerifyEntranceInput = z.infer<
+  typeof AccountSchema.verifyEntrance
+>;
 export type AccountRegisterInput = z.infer<typeof AccountSchema.register>;
 export type AccountLoginInput = z.infer<typeof AccountSchema.login>;
 export type AccountVerifyOtpInput = z.infer<typeof AccountSchema.verifyOtp>;
 export type AccountResetOtpInput = z.infer<typeof AccountSchema.resetOtp>;
-export type AccountForgotPasswordInput = z.infer<typeof AccountSchema.forgotPassword>;
-export type AccountVerifyResetOtpInput = z.infer<typeof AccountSchema.verifyResetOtp>;
-export type AccountResetPasswordInput = z.infer<typeof AccountSchema.resetPassword>;
+export type AccountForgotPasswordInput = z.infer<
+  typeof AccountSchema.forgotPassword
+>;
+export type AccountVerifyResetOtpInput = z.infer<
+  typeof AccountSchema.verifyResetOtp
+>;
+export type AccountResetPasswordInput = z.infer<
+  typeof AccountSchema.resetPassword
+>;
 export type StudentProfileInput = z.infer<typeof AccountSchema.studentProfile>;
 // 5. Export original Types (for consistency)
 export type AccountCreate = z.infer<typeof AccountSchema.create>;
@@ -201,7 +231,7 @@ export type EntranceMatchDto = {
   applicantNameMm: string;
   fatherNameMm: string;
   examYear: string;
-  examRollNo: string;
+  matricExamRollNo: string;
   institution: 'computer' | 'technology';
   totalScore: number;
 };

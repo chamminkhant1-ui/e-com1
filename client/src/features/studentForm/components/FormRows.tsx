@@ -1,7 +1,12 @@
 import { useMemo } from 'react';
 import { Controller } from 'react-hook-form';
 import { useStudentFormContext } from '../hooks/useStudentForm';
-import { RELIGIONS, INTAKE_YEARS, MATRI_PLACE_CODES, MYANMAR_RACES } from '../data/formConstants';
+import {
+  RELIGIONS,
+  INTAKE_YEARS,
+  MATRI_PLACE_CODES,
+  MYANMAR_RACES,
+} from '../data/formConstants';
 import { NrcInput } from './NrcInput';
 
 import { AddressSelector } from './AddressSelector';
@@ -63,7 +68,10 @@ export const EnrollmentSection = () => {
 
 /* ─── Names Row ─────────────────────────────────────────────────────── */
 export const NamesRow = () => {
-  const { form: { register }, entrance } = useStudentFormContext();
+  const {
+    form: { register },
+    entrance,
+  } = useStudentFormContext();
   const nameMm = entrance?.applicantNameMm ?? '';
   const fatherNameMm = entrance?.fatherNameMm ?? '';
 
@@ -130,7 +138,10 @@ export const NamesRow = () => {
 
 /* ─── NRC Row ───────────────────────────────────────────────────────── */
 export const NrcRow = () => {
-  const { form: { control }, entrance } = useStudentFormContext();
+  const {
+    form: { control },
+    entrance,
+  } = useStudentFormContext();
   const EXPECTED_STUDENT_NRC = entrance?.nrcNumber ?? '';
 
   return (
@@ -179,7 +190,9 @@ export const NrcRow = () => {
 
 /* ─── Race Row ──────────────────────────────────────────────────────── */
 export const RaceRow = () => {
-  const { form: { register } } = useStudentFormContext();
+  const {
+    form: { register },
+  } = useStudentFormContext();
 
   return (
     <tr>
@@ -189,19 +202,37 @@ export const RaceRow = () => {
       <td className={`${td} text-left`}>
         <select {...register('ethnicity')} className={`${cellSel} w-full`}>
           <option value=''>---</option>
-          {MYANMAR_RACES.map((r) => <option key={r} value={r}>{r}</option>)}
+          {MYANMAR_RACES.map((r) => (
+            <option key={r} value={r}>
+              {r}
+            </option>
+          ))}
         </select>
       </td>
       <td className={`${td} text-left`}>
-        <select {...register('fatherEthnicity')} className={`${cellSel} w-full`}>
+        <select
+          {...register('fatherEthnicity')}
+          className={`${cellSel} w-full`}
+        >
           <option value=''>---</option>
-          {MYANMAR_RACES.map((r) => <option key={r} value={r}>{r}</option>)}
+          {MYANMAR_RACES.map((r) => (
+            <option key={r} value={r}>
+              {r}
+            </option>
+          ))}
         </select>
       </td>
       <td className={`${td} text-left`}>
-        <select {...register('motherEthnicity')} className={`${cellSel} w-full`}>
+        <select
+          {...register('motherEthnicity')}
+          className={`${cellSel} w-full`}
+        >
           <option value=''>---</option>
-          {MYANMAR_RACES.map((r) => <option key={r} value={r}>{r}</option>)}
+          {MYANMAR_RACES.map((r) => (
+            <option key={r} value={r}>
+              {r}
+            </option>
+          ))}
         </select>
       </td>
     </tr>
@@ -210,7 +241,9 @@ export const RaceRow = () => {
 
 /* ─── Religion Row ──────────────────────────────────────────────────── */
 export const ReligionRow = () => {
-  const { form: { register } } = useStudentFormContext();
+  const {
+    form: { register },
+  } = useStudentFormContext();
 
   return (
     <tr style={{ height: 50 }}>
@@ -271,7 +304,9 @@ export const ReligionRow = () => {
 
 /* ─── Personal Rows (DOB, Gender) ───────────────────────────────────── */
 export const PersonalRows = () => {
-  const { form: { register } } = useStudentFormContext();
+  const {
+    form: { register },
+  } = useStudentFormContext();
 
   return (
     <>
@@ -379,7 +414,7 @@ export const MatriculationRows = () => {
               {...register('matriPlaceSelect', {
                 onChange: (e) => {
                   const val = e.target.value;
-                  if (val && val !== entrance?.examRollNo.split('-')[0]) {
+                  if (val && val !== entrance?.matricExamRollNo.split('-')[0]) {
                     clearRollFields();
                   }
                 },
@@ -437,7 +472,9 @@ export const MatriculationRows = () => {
 
 /* ─── Parent Occupation Row ─────────────────────────────────────────── */
 export const ParentOccupationRow = () => {
-  const { form: { register } } = useStudentFormContext();
+  const {
+    form: { register },
+  } = useStudentFormContext();
 
   return (
     <tr style={{ height: 50 }}>
@@ -581,7 +618,9 @@ export const ContactRows = () => {
               className={`${cellInput} w-48`}
             />
             {studentPhoneMsg.text && (
-              <span className={`text-xs font-semibold ${studentPhoneMsg.color}`}>
+              <span
+                className={`text-xs font-semibold ${studentPhoneMsg.color}`}
+              >
                 {studentPhoneMsg.text}
               </span>
             )}

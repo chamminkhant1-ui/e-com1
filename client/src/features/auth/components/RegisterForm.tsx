@@ -1,7 +1,13 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { registerSchema, type RegisterFormData } from '@/features/auth/schemas/auth.schema';
-import { useRegisterMutation, extractApiError } from '@/features/auth/hooks/useAuthQueries';
+import {
+  registerSchema,
+  type RegisterFormData,
+} from '@/features/auth/schemas/auth.schema';
+import {
+  useRegisterMutation,
+  extractApiError,
+} from '@/features/auth/hooks/useAuthQueries';
 import type { ApiError } from '@/types/api';
 import type { EntranceMatchInfo } from '@/types/auth';
 import { AuthFormCard } from './AuthFormCard';
@@ -68,7 +74,9 @@ export const RegisterForm = ({
         const apiError = extractApiError(error) as ApiError;
 
         if (apiError.errors?.fieldErrors) {
-          for (const [field, messages] of Object.entries(apiError.errors.fieldErrors)) {
+          for (const [field, messages] of Object.entries(
+            apiError.errors.fieldErrors,
+          )) {
             if (field === 'email' || field === 'password') {
               setError(field, { message: messages[0] });
             }
@@ -111,7 +119,7 @@ export const RegisterForm = ({
             {entrance.applicantNameMm}
           </p>
           <p className='truncate text-xs text-on-surface-variant'>
-            {entrance.examRollNo} · {entrance.examYear}
+            {entrance.matricExamRollNo} · {entrance.examYear}
           </p>
         </div>
       </div>
@@ -127,7 +135,11 @@ export const RegisterForm = ({
         </div>
       )}
 
-      <form className='space-y-3.5' onSubmit={handleSubmit(onSubmit)} noValidate>
+      <form
+        className='space-y-3.5'
+        onSubmit={handleSubmit(onSubmit)}
+        noValidate
+      >
         <div className='space-y-1.5'>
           <label htmlFor='register-email' className={authFieldLabelClass}>
             Email

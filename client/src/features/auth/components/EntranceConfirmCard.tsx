@@ -28,7 +28,8 @@ export const EntranceConfirmCard = ({
         <header className='mb-5 space-y-1.5'>
           <h1 className={authFormTitleClass}>Confirm your record</h1>
           <p className={authFormSubtitleClass}>
-            Please confirm these details belong to you before creating an account.
+            Please confirm these details belong to you before creating an
+            account.
           </p>
         </header>
 
@@ -47,7 +48,7 @@ export const EntranceConfirmCard = ({
           </div>
           <div className={infoRowClass}>
             <span className={infoKeyClass}>Roll number</span>
-            <span className={infoValueClass}>{info.examRollNo}</span>
+            <span className={infoValueClass}>{info.matricExamRollNo}</span>
           </div>
           <div className={infoRowClass}>
             <span className={infoKeyClass}>Institution</span>
