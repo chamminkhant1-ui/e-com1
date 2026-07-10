@@ -31,7 +31,7 @@ export class Account {
 
   @Column({
     type: 'enum',
-    enum: ['student', 'admin', 'super', 'owner'],
+    enum: ['student', 'admin', 'super', 'finance', 'owner'],
     default: 'student',
   })
   role!: Role;
@@ -63,7 +63,10 @@ export class Account {
   @Column({ name: 'entrance_id', nullable: true })
   entranceId?: number;
 
-  @ManyToOne(() => EntranceRegistration, { onDelete: 'SET NULL', nullable: true })
+  @ManyToOne(() => EntranceRegistration, {
+    onDelete: 'SET NULL',
+    nullable: true,
+  })
   @JoinColumn({ name: 'entrance_id' })
   entrance?: EntranceRegistration;
 

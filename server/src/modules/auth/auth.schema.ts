@@ -14,7 +14,7 @@ const buildExamRollNo = (rollCode: string, rollNumber: string): string =>
   `${rollCode.trim()}-${rollNumber.trim()}`;
 
 // 2. Define the Role Enum (for server-side validation/use)
-const AccountRole = z.enum(['student', 'admin', 'super', 'owner']);
+const AccountRole = z.enum(['student', 'admin', 'super', 'finance', 'owner']);
 export type AccountRoleType = z.infer<typeof AccountRole>;
 
 // 3. Create Schemas for API Requests
