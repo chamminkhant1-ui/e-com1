@@ -9,7 +9,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import type { Role } from './types';
+import type { Role, ApplicationStatus } from './types';
 import { StudentProfile } from './StudentProfile';
 import { SemesterRegistration } from './SemesterRegistration';
 import { EntranceRegistration } from './EntranceRegistration';
@@ -37,6 +37,21 @@ export class Account {
     default: 'student',
   })
   role!: Role;
+
+  @Column({
+    type: 'enum',
+    enum: [
+      'DRAFT',
+      'PROFILE_COMPLETED',
+      'NRC_UPLOADED',
+      'DOCUMENTS_UPLOADED',
+      'APPROVED',
+      'REJECTED',
+    ],
+    default: 'DRAFT',
+    name: 'application_status',
+  })
+  applicationStatus!: ApplicationStatus;
 
   @Column({ name: 'otp_code', type: 'text', nullable: true })
   otpCode?: string | null;

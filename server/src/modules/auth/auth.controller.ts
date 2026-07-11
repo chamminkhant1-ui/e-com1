@@ -16,7 +16,6 @@ import {
   AccountForgotPasswordInput,
   AccountVerifyResetOtpInput,
   AccountResetPasswordInput,
-  StudentProfileInput,
 } from './auth.schema';
 import { buildAuthUserDto } from './auth.user';
 
@@ -205,25 +204,4 @@ export class AuthController {
     });
   });
 
-  /**
-   * POST /api/auth/profile
-   * Saves the full student registration profile from the dashboard form.
-   * Requires authentication. Resolves address names to IDs and persists all
-   * related records (StudentProfile, ParentProfile, addresses) in one transaction.
-   */
-  saveProfile = asyncHandler(async (req: Request, res: Response) => {
-    const user = (req as any).user as AuthTokenPayload;
-    if (!user) {
-      throw AppError.unauthorized('Authentication failed in saveProfile.');
-    }
-
-    const payload: StudentProfileInput = (req as any).validatedBody ?? req.body;
-    const profile = await this.authService.saveStudentProfile(user.id, payload);
-
-    res.status(200).json({
-      ok: true,
-      message: 'Profile saved successfully.',
-      data: { studentId: profile.studentId },
-    });
-  });
 }

@@ -152,17 +152,4 @@ router.post(
   authController.logoutAll
 );
 
-/**
- * @route POST /api/auth/profile
- * @desc Saves (upserts) the student's full registration profile submitted from the /dashboard form.
- *       Resolves address names → IDs and writes StudentProfile, ParentProfile, and Address records.
- * @access Private (student must be authenticated)
- */
-router.post(
-  "/profile",
-  verifyAuth,
-  validate({ body: AccountSchema.studentProfile }),
-  authController.saveProfile
-);
-
 export default router;

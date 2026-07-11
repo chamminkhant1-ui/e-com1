@@ -22,5 +22,6 @@ export type {
   RegistrationStatus,
   AddressType,
   PaymentStatus,
+  ApplicationStatus,
 } from './types';
 
