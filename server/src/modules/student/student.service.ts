@@ -112,7 +112,7 @@ export class StudentService {
       profile.dob = new Date(data.dob) as unknown as Date;
       profile.phoneNumber = data.phoneNumber;
       profile.studentNrc = studentNrc;
-      profile.ethnicity = data.ethnicity.r1 || undefined;
+      profile.ethnicity = data.ethnicity || undefined;
       profile.religion = data.religion || undefined;
       profile.highSchoolRollNo = highSchoolRollNo;
       profile.highSchoolName = data.highSchoolName || undefined;
@@ -133,13 +133,13 @@ export class StudentService {
       parentProfile.fatherNameMm = data.fatherNameMm;
       parentProfile.fatherNameEn = data.fatherNameEn;
       parentProfile.fatherNrc = fatherNrc || undefined;
-      parentProfile.fatherEthnicity = data.fatherEthnicity.r1 || undefined;
+      parentProfile.fatherEthnicity = data.fatherEthnicity || undefined;
       parentProfile.fatherReligion = data.fatherReligion || undefined;
       parentProfile.fatherJob = data.fatherJob || undefined;
       parentProfile.motherNameMm = data.motherNameMm;
       parentProfile.motherNameEn = data.motherNameEn;
       parentProfile.motherNrc = motherNrc || undefined;
-      parentProfile.motherEthnicity = data.motherEthnicity.r1 || undefined;
+      parentProfile.motherEthnicity = data.motherEthnicity || undefined;
       parentProfile.motherReligion = data.motherReligion || undefined;
       parentProfile.motherJob = data.motherJob || undefined;
       parentProfile.parentPhone = data.parentPhone || undefined;
@@ -193,6 +193,10 @@ export class StudentService {
     account.applicationStatus = data.status;
     await AccountRepository.save(account);
     return account;
+  }
+
+  async getPhotos(studentId: number): Promise<Photo | null> {
+    return await PhotoRepository.findOne({ where: { studentId } });
   }
 
   async savePhoto(

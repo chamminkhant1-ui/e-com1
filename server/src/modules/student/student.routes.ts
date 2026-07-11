@@ -72,6 +72,16 @@ router.patch(
 );
 
 /**
+ * @route GET /api/students/:studentId/photos
+ * @desc Retrieves the student's uploaded photo URLs.
+ * @access Private (student)
+ */
+router.get(
+  '/:studentId/photos',
+  studentController.getPhotos
+);
+
+/**
  * @route POST /api/students/:studentId/photos/:documentType
  * @desc Uploads a single photo to the student's photo record.
  * @access Private (student)

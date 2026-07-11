@@ -24,7 +24,7 @@ import { EntranceRegistration } from './EntranceRegistration';
 @Index('idx_student_nrc', ['studentNrc'])
 @Index('idx_student_reg_no', ['universityRegNo'])
 export class StudentProfile {
-  @PrimaryGeneratedColumn({ name: 'student_id' })
+  @PrimaryColumn({ name: 'student_id' })
   studentId!: number;
 
   @OneToOne(() => Account, (account) => account.studentProfile, {

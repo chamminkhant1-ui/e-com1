@@ -32,7 +32,9 @@ export const useMatriValidation = (
       return '❌ ရွေးချယ်ထားသောအချက်အလက် မကိုက်ညီမှု မရှိပါ။';
     }
     if (!matriRollNumber) return '';
-    return toMyanmarDigits(matriRollNumber).trim() !== expectedMatriRollNo.trim()
+    console.log({ expectedMatriRollNo, matriRollNumber });
+    return toMyanmarDigits(matriRollNumber).trim() !==
+      expectedMatriRollNo.trim()
       ? '❌ ခုံနံပါတ်မှားယွင်းနေပါသည်။'
       : '';
   })();

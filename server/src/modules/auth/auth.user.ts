@@ -8,6 +8,7 @@ export interface AuthUserDto {
   id: number;
   email: string;
   role: Account['role'];
+  applicationStatus?: string;
   hasStudentProfile?: boolean;
   studentId?: number;
   entrance?: EntranceMatchDto | null;
@@ -26,6 +27,7 @@ export async function buildAuthUserDto(account: Account): Promise<AuthUserDto> {
     id: account.id,
     email: account.email,
     role: account.role,
+    applicationStatus: account.applicationStatus,
   };
 
   if (account.role !== 'student') {

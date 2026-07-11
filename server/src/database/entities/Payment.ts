@@ -8,7 +8,7 @@ import {
   OneToMany,
   Index,
 } from 'typeorm';
-import { AssignedRollNumber } from './AssignedRollNumber';
+import { SemesterRegistration } from './SemesterRegistration';
 import { Account } from './Account';
 import { PaymentHistory } from './PaymentHistory';
 import type { PaymentStatus } from './types';
@@ -18,14 +18,14 @@ export class Payment {
   @PrimaryGeneratedColumn('uuid', { name: 'payment_id' })
   paymentId!: string;
 
-  @Column({ name: 'roll_number_id' })
-  rollNumberId!: number;
+  @Column({ name: 'registration_id' })
+  registrationId!: string;
 
-  @OneToOne(() => AssignedRollNumber, (roll) => roll.payment, {
+  @OneToOne(() => SemesterRegistration, (reg) => reg.payment, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'roll_number_id' })
-  assignedRollNumber!: AssignedRollNumber;
+  @JoinColumn({ name: 'registration_id' })
+  registration!: SemesterRegistration;
 
   @Column({ name: 'payer_name', length: 255 })
   payerName!: string;

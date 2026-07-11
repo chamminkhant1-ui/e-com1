@@ -6,6 +6,7 @@ export interface User {
   role: Role;
   hasStudentProfile?: boolean;
   studentId?: number;
+  applicationStatus?: string;
   entrance?: EntranceMatchInfo | null;
   serverDate?: string;
 }

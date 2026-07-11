@@ -16,6 +16,7 @@ import { Semester } from './Semester';
 import { Major } from './Major';
 import { Account } from './Account';
 import { AssignedRollNumber } from './AssignedRollNumber';
+import { Payment } from './Payment';
 
 @Entity({ name: 'semester_registrations' })
 @Unique(['studentId', 'academicYearId', 'semesterId'])
@@ -87,4 +88,7 @@ export class SemesterRegistration {
 
   @OneToOne(() => AssignedRollNumber, (roll) => roll.registration)
   assignedRollNumber?: AssignedRollNumber;
+
+  @OneToOne(() => Payment, (payment) => payment.registration)
+  payment?: Payment;
 }

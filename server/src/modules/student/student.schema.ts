@@ -32,17 +32,9 @@ export const StudentSchema = {
     }),
 
     // ── Race (r1 = main race, r2/r3 optional sub-race) ──────────────────
-    ethnicity: z.object({ r1: z.string(), r2: z.string(), r3: z.string() }),
-    fatherEthnicity: z.object({
-      r1: z.string(),
-      r2: z.string(),
-      r3: z.string(),
-    }),
-    motherEthnicity: z.object({
-      r1: z.string(),
-      r2: z.string(),
-      r3: z.string(),
-    }),
+    ethnicity: z.string().min(1, 'Student ethnicity is required'),
+    fatherEthnicity: z.string().min(1, 'Father ethnicity is required'),
+    motherEthnicity: z.string().min(1, 'Mother ethnicity is required'),
 
     // ── Religion ─────────────────────────────────────────────────────────
     religion: z.string().min(1, 'Student religion is required'),

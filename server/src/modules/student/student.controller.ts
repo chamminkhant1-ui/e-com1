@@ -51,6 +51,21 @@ export class StudentController {
   });
 
   /**
+   * GET /api/students/:studentId/photos
+   * Retrieves the uploaded photo URLs for the student.
+   */
+  getPhotos = asyncHandler(async (req: Request, res: Response) => {
+    const studentId = req.params.studentId;
+    const photos = await studentService.getPhotos(Number(studentId));
+    
+    res.status(200).json({
+      ok: true,
+      message: 'Photos retrieved successfully.',
+      data: photos || {},
+    });
+  });
+
+  /**
    * POST /api/students/:studentId/photos/:documentType
    * Uploads a single photo and links it to the student's photo record.
    */

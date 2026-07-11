@@ -20,7 +20,7 @@ export const AppDataSource = new DataSource({
   username: DB_USERNAME || 'postgres',
   password: DB_PASSWORD || 'root',
   database: DB_NAME || 'postgres',
-  synchronize: true,
+  synchronize: false,
   logging: false,
   entities: Object.values(entities).filter(
     (e) => typeof e === 'function',

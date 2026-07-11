@@ -27,7 +27,10 @@ app.use(
 );
 app.use(express.json());
 app.use(cookieParser());
+import path from 'path';
+
 app.use('/api', routes);
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 app.use(notFoundHandler);
 app.use(errorHandler);

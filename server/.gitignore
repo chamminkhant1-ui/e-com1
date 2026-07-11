@@ -4,3 +4,4 @@ dist
 *.log
 .msal-cache.json
 src/database/example_data
+uploads

@@ -438,7 +438,7 @@ export const MatriculationRows = () => {
                   e.target.value = toMyanmarDigits(e.target.value);
                 },
               })}
-              disabled={!matriPlaceSelect}
+              disabled={false}
               placeholder='၁၁'
               className={`${cellInput} w-20`}
               required

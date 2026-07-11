@@ -1,5 +1,4 @@
 import { StudentFormProvider, useStudentFormContext } from '../hooks/useStudentForm';
-import { PhotoUpload } from './PhotoUpload';
 import {
   EnrollmentSection,
   NamesRow,
@@ -28,22 +27,9 @@ const StudentRegistrationFormContent = ({
   const {
     onSubmit,
     formError,
-    photoPreview,
-    setPhotoPreview,
     isEntranceLoading,
     isEntranceError,
   } = useStudentFormContext();
-
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0] ?? null;
-    if (f) {
-      const r = new FileReader();
-      r.onload = () => setPhotoPreview(r.result as string);
-      r.readAsDataURL(f);
-    } else {
-      setPhotoPreview('');
-    }
-  };
 
   /* ─── loading / error guards ─────────────────────────────────── */
   if (isEntranceLoading) {
@@ -108,16 +94,8 @@ const StudentRegistrationFormContent = ({
           (ပထမနှစ်အတွက်သာ)
         </h3>
 
-        {/* ── Top section: Photo (left) + Enrollment table (right) ── */}
-        <div className='flex justify-between items-start gap-4 mb-4'>
-          {/* Photo upload */}
-          <div className='flex flex-col items-center gap-1'>
-            <PhotoUpload
-              label={'Passport ဓာတ်ပုံ\nတင်ရန်'}
-              preview={photoPreview}
-              onChange={handlePhotoChange}
-            />
-          </div>
+        {/* ── Top section: Enrollment table ── */}
+        <div className='mb-4'>
           <EnrollmentSection />
         </div>
 

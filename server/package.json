@@ -12,6 +12,7 @@
     "seed": "ts-node src/seed.ts",
     "seed:loc": "ts-node src/seed/locations.ts",
     "seed:en": "ts-node src/seed/entrance.ts",
+    "seed:setup": "ts-node src/seed/academic_setup.ts",
     "dbtest": "nodemon --watch src --ext ts --exec ts-node src/dbTest.ts"
   },
   "keywords": [],
