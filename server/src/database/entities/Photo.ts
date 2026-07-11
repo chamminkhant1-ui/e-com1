@@ -21,18 +21,15 @@ export class Photo {
   @JoinColumn({ name: 'student_id' })
   student!: StudentProfile;
 
-  @Column({ name: 'one_inch_photo', length: 255, nullable: true })
-  oneInchPhoto?: string;
-
   @Column({ name: 'passport_photo', length: 255, nullable: true })
   passportPhoto?: string;
 
   @Column({
-    name: 'house_registration_photo_front',
+    name: 'house_registration_photo',
     length: 255,
     nullable: true,
   })
-  houseRegistrationPhotoFront?: string;
+  houseRegistrationPhoto?: string;
 
   @Column({ name: 'matriculation_mark_photo', length: 255, nullable: true })
   matriculationMarkPhoto?: string;
@@ -46,14 +43,14 @@ export class Photo {
   @Column({ name: 'quarter_approved_letter', length: 255, nullable: true })
   quarterApprovedLetter?: string;
 
+  @Column({ name: 'medical_certificate', length: 255, nullable: true })
+  medicalCertificate?: string;
+
   @Column({ name: 'student_nrc_photo_front', length: 255, nullable: true })
   studentNrcPhotoFront?: string;
 
   @Column({ name: 'student_nrc_photo_back', length: 255, nullable: true })
   studentNrcPhotoBack?: string;
-
-  @Column({ name: 'covid_photo', length: 255, nullable: true })
-  covidPhoto?: string;
 
   @Column({ name: 'fath_nrc_photo_front', length: 255, nullable: true })
   fathNrcPhotoFront?: string;
@@ -66,9 +63,6 @@ export class Photo {
 
   @Column({ name: 'moth_nrc_photo_back', length: 255, nullable: true })
   mothNrcPhotoBack?: string;
-
-  @Column({ name: 'payment_screenshot', length: 255, nullable: true })
-  paymentScreenshot?: string;
 
   @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
   createdAt!: Date;

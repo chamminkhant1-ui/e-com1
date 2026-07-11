@@ -13,6 +13,8 @@ import type { Role } from './types';
 import { StudentProfile } from './StudentProfile';
 import { SemesterRegistration } from './SemesterRegistration';
 import { EntranceRegistration } from './EntranceRegistration';
+import { Payment } from './Payment';
+import { PaymentHistory } from './PaymentHistory';
 
 @Entity({ name: 'accounts' })
 @Index('idx_accounts_email', ['email'])
@@ -72,6 +74,12 @@ export class Account {
 
   @OneToMany(() => SemesterRegistration, (reg) => reg.processedBy)
   processedRegistrations?: SemesterRegistration[];
+
+  @OneToMany(() => Payment, (payment) => payment.processedBy)
+  processedPayments?: Payment[];
+
+  @OneToMany(() => PaymentHistory, (history) => history.processedBy)
+  processedPaymentHistories?: PaymentHistory[];
 }
 
 export type { Role } from './types';

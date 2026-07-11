@@ -1,10 +1,4 @@
-import {
-  Entity,
-  PrimaryColumn,
-  Column,
-  OneToOne,
-  JoinColumn,
-} from 'typeorm';
+import { Entity, PrimaryColumn, Column, OneToOne, JoinColumn } from 'typeorm';
 import { StudentProfile } from './StudentProfile';
 
 @Entity({ name: 'parent_profiles' })
@@ -54,14 +48,14 @@ export class ParentProfile {
   @Column({ length: 150, name: 'mother_job', nullable: true })
   motherJob?: string;
 
-  @Column({ length: 255, name: 'guardian_name_mm', nullable: true })
-  guardianNameMm?: string;
+  // @Column({ length: 255, name: 'guardian_name_mm', nullable: true })
+  // guardianNameMm?: string;
 
-  @Column({ length: 100, name: 'guardian_nrc', nullable: true })
-  guardianNrc?: string;
+  // @Column({ length: 100, name: 'guardian_nrc', nullable: true })
+  // guardianNrc?: string;
 
-  @Column({ length: 50, name: 'guardian_phone', nullable: true })
-  guardianPhone?: string;
+  // @Column({ length: 50, name: 'guardian_phone', nullable: true })
+  // guardianPhone?: string;
 
   @Column({ length: 50, name: 'parent_phone', nullable: true })
   parentPhone?: string;

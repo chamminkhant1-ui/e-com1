@@ -12,6 +12,8 @@ export { ParentProfile } from './ParentProfile';
 export { Photo } from './Photo';
 export { SemesterRegistration } from './SemesterRegistration';
 export { AssignedRollNumber } from './AssignedRollNumber';
+export { Payment } from './Payment';
+export { PaymentHistory } from './PaymentHistory';
 
 export type {
   Role,
@@ -19,4 +21,6 @@ export type {
   InstitutionType,
   RegistrationStatus,
   AddressType,
+  PaymentStatus,
 } from './types';
+

@@ -13,3 +13,6 @@ export type RegistrationStatus =
 export type AddressType = 'current' | 'parent' | 'office';
 
 export type ClaimStatus = 'unclaimed' | 'pending' | 'approved' | 'rejected';
+
+export type PaymentStatus = 'pending' | 'approved' | 'rejected';
+

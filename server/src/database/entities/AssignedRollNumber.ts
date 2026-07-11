@@ -9,6 +9,7 @@ import {
   Unique,
 } from 'typeorm';
 import { SemesterRegistration } from './SemesterRegistration';
+import { Payment } from './Payment';
 
 @Entity({ name: 'assigned_roll_numbers' })
 @Unique(['registrationId'])
@@ -34,4 +35,7 @@ export class AssignedRollNumber {
 
   @CreateDateColumn({ type: 'timestamptz', name: 'assigned_at' })
   assignedAt!: Date;
+
+  @OneToOne(() => Payment, (payment) => payment.assignedRollNumber)
+  payment?: Payment;
 }
