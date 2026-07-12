@@ -212,7 +212,6 @@ export class StudentService {
           academicYearId: activeYear.academicYearId,
           semesterId: firstSemester.semesterId,
           majorCode: 'CST',
-          status: 'pending',
         });
         await registrationRepo.save(registration);
       }

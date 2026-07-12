@@ -9,13 +9,11 @@ import {
   Index,
   Unique,
 } from 'typeorm';
-import type { RegistrationStatus } from './types';
 import { StudentProfile } from './StudentProfile';
 import { AcademicYear } from './AcademicYear';
 import { Semester } from './Semester';
 import { Major } from './Major';
 import { Account } from './Account';
-import { AssignedRollNumber } from './AssignedRollNumber';
 import { Payment } from './Payment';
 
 @Entity({ name: 'semester_registrations' })
@@ -24,7 +22,6 @@ import { Payment } from './Payment';
   'academicYearId',
   'semesterId',
   'majorCode',
-  'status',
 ])
 export class SemesterRegistration {
   @PrimaryGeneratedColumn('uuid', { name: 'registration_id' })
@@ -60,15 +57,12 @@ export class SemesterRegistration {
   @JoinColumn({ name: 'major_code' })
   major!: Major;
 
-  @Column({
-    type: 'enum',
-    enum: ['pending', 'approved', 'rejected', 'deferred'],
-    default: 'pending',
-  })
-  status!: RegistrationStatus;
+  @Column({ length: 50, name: 'roll_no', nullable: true })
+  @Index('idx_sem_reg_roll_no')
+  rollNo?: string;
 
-  @Column({ length: 100, name: 'source_exam_roll_no', nullable: true })
-  sourceExamRollNo?: string;
+  @Column({ type: 'timestamptz', name: 'roll_no_assigned_at', nullable: true })
+  rollNoAssignedAt?: Date;
 
   @CreateDateColumn({ type: 'timestamptz', name: 'applied_date' })
   appliedDate!: Date;
@@ -86,8 +80,6 @@ export class SemesterRegistration {
   @Column({ type: 'text', nullable: true })
   remarks?: string;
 
-  @OneToOne(() => AssignedRollNumber, (roll) => roll.registration)
-  assignedRollNumber?: AssignedRollNumber;
 
   @OneToOne(() => Payment, (payment) => payment.registration)
   payment?: Payment;
