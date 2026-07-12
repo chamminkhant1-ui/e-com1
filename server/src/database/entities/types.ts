@@ -21,5 +21,6 @@ export type ApplicationStatus =
   | 'PROFILE_COMPLETED'
   | 'NRC_UPLOADED'
   | 'DOCUMENTS_UPLOADED'
+  | 'PAYMENT_SUBMITTED'
   | 'APPROVED'
   | 'REJECTED';

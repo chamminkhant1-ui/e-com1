@@ -22,7 +22,7 @@ const td = 'border border-black px-2 py-1 text-sm align-middle';
 const tdLabel = `${td} text-center font-medium`;
 
 /* ─── Enrollment Metadata Table ─────────────────────────────────────── */
-export const EnrollmentSection = () => {
+export const EnrollmentSection = ({ width = '62%' }: { width?: string }) => {
   const { entrance } = useStudentFormContext();
   const serverDate = useMemo(() => new Date().toISOString(), []);
 
@@ -41,7 +41,7 @@ export const EnrollmentSection = () => {
   }, [entrance, serverDate]);
 
   return (
-    <div style={{ width: '62%' }}>
+    <div style={{ width }}>
       <table className='w-full border-collapse text-sm'>
         <tbody>
           <tr>
@@ -359,14 +359,12 @@ export const PersonalRows = () => {
 /* ─── Matriculation Rows ────────────────────────────────────────────── */
 export const MatriculationRows = () => {
   const {
-    form: { register, watch },
+    form: { register },
     entrance,
     yearMsg,
     rollMsg,
     clearRollFields,
   } = useStudentFormContext();
-
-  const matriPlaceSelect = watch('matriPlaceSelect');
 
   return (
     <>

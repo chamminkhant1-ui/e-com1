@@ -8,6 +8,11 @@ import { Address } from '../../database/entities/Address';
 import { State } from '../../database/entities/State';
 import { District } from '../../database/entities/District';
 import { Township } from '../../database/entities/Township';
+import { AcademicYear } from '../../database/entities/AcademicYear';
+import { Semester } from '../../database/entities/Semester';
+import { Major } from '../../database/entities/Major';
+import { SemesterRegistration } from '../../database/entities/SemesterRegistration';
+import { Payment } from '../../database/entities/Payment';
 import AppError from '../../common/utils/AppError';
 import type { StudentProfileInput, UpdateStatusInput } from './student.schema';
 
@@ -175,6 +180,43 @@ export class StudentService {
       });
       await addressRepo.save(parentAddr);
 
+      // 1. Get active academic year
+      const academicYearRepo = manager.getRepository(AcademicYear);
+      const activeYear = await academicYearRepo.findOne({ where: { isActive: true } });
+
+      // 2. Get first semester (numerical level 1)
+      const semesterRepo = manager.getRepository(Semester);
+      const firstSemester = await semesterRepo.findOne({ where: { numericalLevel: 1 } });
+
+      // 3. Get CST major
+      const majorRepo = manager.getRepository(Major);
+      const cstMajor = await majorRepo.findOne({ where: { majorCode: 'CST' } });
+
+      if (!activeYear || !firstSemester || !cstMajor) {
+        throw AppError.badRequest('ကျောင်းအပ်နှံရန် semester ဖွင့်လှစ်ထားခြင်း မရှိသေးပါ။');
+      }
+
+      // 4. Create or get SemesterRegistration
+      const registrationRepo = manager.getRepository(SemesterRegistration);
+      let registration = await registrationRepo.findOne({
+        where: {
+          studentId: accountId,
+          academicYearId: activeYear.academicYearId,
+          semesterId: firstSemester.semesterId,
+        },
+      });
+
+      if (!registration) {
+        registration = registrationRepo.create({
+          studentId: accountId,
+          academicYearId: activeYear.academicYearId,
+          semesterId: firstSemester.semesterId,
+          majorCode: 'CST',
+          status: 'pending',
+        });
+        await registrationRepo.save(registration);
+      }
+
       // Update Account Status
       await accountRepo.update({ id: accountId }, { applicationStatus: 'PROFILE_COMPLETED' });
 
@@ -236,5 +278,73 @@ export class StudentService {
     } else {
       throw AppError.badRequest('Invalid document type');
     }
+  }
+
+  async submitPayment(
+    studentId: number,
+    payerName: string,
+    transactionCode: string,
+    screenshotPath: string
+  ): Promise<Payment> {
+    // 1. Find the student's semester registration
+    const registrationRepo = AppDataSource.getRepository(SemesterRegistration);
+    const registration = await registrationRepo.findOne({
+      where: { studentId },
+      order: { appliedDate: 'DESC' }
+    });
+
+    if (!registration) {
+      throw AppError.notFound('Semester registration not found. Please complete your profile first.');
+    }
+
+    // 2. Create the payment record
+    const paymentRepo = AppDataSource.getRepository(Payment);
+    
+    // Check if a payment already exists for this registration
+    let payment = await paymentRepo.findOne({
+      where: { registrationId: registration.registrationId }
+    });
+
+    if (payment) {
+      throw AppError.badRequest('Payment already submitted for this registration.');
+    }
+
+    // Check if transaction code is already used
+    const existingTx = await paymentRepo.findOne({ where: { transactionCode } });
+    if (existingTx) {
+      throw AppError.badRequest('This transaction code has already been submitted.');
+    }
+
+    payment = paymentRepo.create({
+      registrationId: registration.registrationId,
+      payerName,
+      transactionCode,
+      paymentScreenshot: screenshotPath,
+      paymentTime: new Date(),
+      status: 'pending',
+    });
+
+    await paymentRepo.save(payment);
+
+    // 3. Update account status to 'PAYMENT_SUBMITTED'
+    const accountRepo = AppDataSource.getRepository(Account);
+    await accountRepo.update({ id: studentId }, { applicationStatus: 'PAYMENT_SUBMITTED' });
+
+    return payment;
+  }
+
+  async getPayment(studentId: number): Promise<Payment | null> {
+    const registrationRepo = AppDataSource.getRepository(SemesterRegistration);
+    const registration = await registrationRepo.findOne({
+      where: { studentId },
+      order: { appliedDate: 'DESC' }
+    });
+
+    if (!registration) return null;
+
+    const paymentRepo = AppDataSource.getRepository(Payment);
+    return await paymentRepo.findOne({
+      where: { registrationId: registration.registrationId }
+    });
   }
 }

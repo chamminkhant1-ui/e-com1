@@ -91,11 +91,22 @@ export const StudentSchema = {
       'PROFILE_COMPLETED',
       'NRC_UPLOADED',
       'DOCUMENTS_UPLOADED',
+      'PAYMENT_SUBMITTED',
       'APPROVED',
       'REJECTED'
     ]),
+  }),
+
+  // SUBMIT PAYMENT
+  submitPayment: z.object({
+    payerName: z.string().min(1, 'Payer name is required'),
+    transactionCode: z
+      .string()
+      .length(6, 'Transaction code must be the last 6 digits')
+      .regex(/^[0-9]+$/, 'Transaction code must contain only numbers'),
   }),
 };
 
 export type StudentProfileInput = z.infer<typeof StudentSchema.studentProfile>;
 export type UpdateStatusInput = z.infer<typeof StudentSchema.updateStatus>;
+export type SubmitPaymentInput = z.infer<typeof StudentSchema.submitPayment>;

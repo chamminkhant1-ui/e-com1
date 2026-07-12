@@ -4,6 +4,8 @@ import {
   uploadStudentPhoto,
   getStudentPhotos,
   updateStudentStatus,
+  submitStudentPayment,
+  getStudentPayment,
 } from '../api/student.service';
 
 export const useStudentPhotosQuery = (studentId: number, enabled: boolean = true) => {
@@ -48,5 +50,33 @@ export const useUpdateStudentStatusMutation = () => {
       await queryClient.invalidateQueries({ queryKey: ['session'] });
     },
     throwOnError: false,
+  });
+};
+
+export const useSubmitStudentPaymentMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      payerName,
+      transactionCode,
+      file,
+    }: {
+      payerName: string;
+      transactionCode: string;
+      file: File;
+    }) => submitStudentPayment(payerName, transactionCode, file),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['session'] });
+      await queryClient.invalidateQueries({ queryKey: ['student-payment'] });
+    },
+    throwOnError: false,
+  });
+};
+
+export const useStudentPaymentQuery = (enabled: boolean = true) => {
+  return useQuery({
+    queryKey: ['student-payment'],
+    queryFn: () => getStudentPayment(),
+    enabled,
   });
 };

@@ -23,7 +23,7 @@ import { Payment } from './Payment';
 @Index('idx_sem_reg_composite', [
   'academicYearId',
   'semesterId',
-  'majorId',
+  'majorCode',
   'status',
 ])
 export class SemesterRegistration {
@@ -53,11 +53,11 @@ export class SemesterRegistration {
   @JoinColumn({ name: 'semester_id' })
   semester!: Semester;
 
-  @Column({ name: 'major_id' })
-  majorId!: number;
+  @Column({ name: 'major_code', length: 50 })
+  majorCode!: string;
 
   @ManyToOne(() => Major, { onDelete: 'RESTRICT' })
-  @JoinColumn({ name: 'major_id' })
+  @JoinColumn({ name: 'major_code' })
   major!: Major;
 
   @Column({

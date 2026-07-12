@@ -3,7 +3,7 @@ import asyncHandler from 'express-async-handler';
 import { StudentService } from './student.service';
 import type { AuthTokenPayload } from '../../common/utils/jwt.utils';
 import AppError from '../../common/utils/AppError';
-import type { StudentProfileInput, UpdateStatusInput } from './student.schema';
+import type { StudentProfileInput, UpdateStatusInput, SubmitPaymentInput } from './student.schema';
 
 const studentService = new StudentService();
 
@@ -89,6 +89,56 @@ export class StudentController {
       ok: true,
       message: `${documentType} uploaded successfully.`,
       data: responseData
+    });
+  });
+
+  /**
+   * POST /api/students/payment
+   * Submits KBZPay/WavePay payment details and receipt image.
+   */
+  submitPayment = asyncHandler(async (req: Request, res: Response) => {
+    const user = (req as any).user as AuthTokenPayload;
+    if (!user) {
+      throw AppError.unauthorized('Authentication failed in submitPayment.');
+    }
+
+    if (!req.file) {
+      throw AppError.badRequest('Payment receipt image is required.');
+    }
+
+    const payload: SubmitPaymentInput = (req as any).validatedBody ?? req.body;
+    const filePath = req.file.path.replace(/\\/g, '/');
+
+    const payment = await studentService.submitPayment(
+      user.id,
+      payload.payerName,
+      payload.transactionCode,
+      filePath
+    );
+
+    res.status(200).json({
+      ok: true,
+      message: 'Payment submitted successfully.',
+      data: payment,
+    });
+  });
+
+  /**
+   * GET /api/students/payment
+   * Retrieves the student's payment record if it exists.
+   */
+  getPayment = asyncHandler(async (req: Request, res: Response) => {
+    const user = (req as any).user as AuthTokenPayload;
+    if (!user) {
+      throw AppError.unauthorized('Authentication failed in getPayment.');
+    }
+
+    const payment = await studentService.getPayment(user.id);
+
+    res.status(200).json({
+      ok: true,
+      message: 'Payment details retrieved successfully.',
+      data: payment || null,
     });
   });
 }

@@ -14,9 +14,9 @@ async function main() {
   const academicYearRepo = AppDataSource.getRepository(AcademicYear);
 
   const majors = [
-    { majorNameMm: 'ကွန်ပျူတာသိပ္ပံနှင့်နည်းပညာ', majorNameEn: 'Computer Science and Technology (CST)', institution: 'computer' as const },
-    { majorNameMm: 'ကွန်ပျူတာနည်းပညာ', majorNameEn: 'Computer Technology (CT)', institution: 'computer' as const },
-    { majorNameMm: 'ကွန်ပျူတာသိပ္ပံ', majorNameEn: 'Computer Science (CS)', institution: 'computer' as const },
+    { majorCode: 'CST', majorNameMm: 'ကွန်ပျူတာသိပ္ပံနှင့်နည်းပညာ', majorNameEn: 'Computer Science and Technology (CST)', institution: 'computer' as const },
+    { majorCode: 'CT', majorNameMm: 'ကွန်ပျူတာနည်းပညာ', majorNameEn: 'Computer Technology (CT)', institution: 'computer' as const },
+    { majorCode: 'CS', majorNameMm: 'ကွန်ပျူတာသိပ္ပံ', majorNameEn: 'Computer Science (CS)', institution: 'computer' as const },
   ];
 
   for (const m of majors) {
@@ -25,7 +25,7 @@ async function main() {
       .insert()
       .into(Major)
       .values(m)
-      .orIgnore('("major_name_mm") DO NOTHING')
+      .orIgnore('("major_code") DO NOTHING')
       .execute();
   }
   console.log(`Majors upserted: ${majors.length}`);

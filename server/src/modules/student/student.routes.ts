@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { AppDataSource } from '../../database/data-source';
 import { StudentProfile } from '../../database/entities/StudentProfile';
+import { Account } from '../../database/entities/Account';
 import { validate } from '../../common/middleware/validate';
 import { verifyAuth } from '../../common/middleware/auth.middleware';
 import { StudentSchema } from './student.schema';
@@ -19,10 +20,32 @@ const storage = multer.diskStorage({
       const studentId = req.params.studentId;
       
       const studentRepo = AppDataSource.getRepository(StudentProfile);
-      const student = await studentRepo.findOne({ where: { studentId: Number(studentId) } });
+      let student = await studentRepo.findOne({ where: { studentId: Number(studentId) } });
       
       if (!student) {
-        return cb(new Error('Student not found'), '');
+        // If profile doesn't exist, we find the account and entrance registration to get basic info
+        const accountRepo = AppDataSource.getRepository(Account);
+        const account = await accountRepo.findOne({
+          where: { id: Number(studentId) },
+          relations: ['entrance'],
+        });
+        
+        if (!account) {
+          return cb(new Error('Student account not found'), '');
+        }
+
+        // Create a stub profile. All mandatory fields will be updated during final profile save.
+        student = studentRepo.create({
+          studentId: Number(studentId),
+          nameMm: account.entrance?.applicantNameMm || 'ကျောင်းသားသစ်',
+          nameEn: 'Temp',
+          gender: 'Other',
+          dob: new Date('2000-01-01'),
+          phoneNumber: '',
+          studentNrc: account.entrance?.nrcNumber || `TEMP/${studentId}`,
+          entranceId: account.entranceId || undefined,
+        });
+        await studentRepo.save(student);
       }
 
       const dirName = `${studentId}+${student.nameEn}`;
@@ -47,6 +70,26 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
+const paymentStorage = multer.diskStorage({
+  destination: async (req, file, cb) => {
+    try {
+      const uploadPath = path.join(__dirname, '../../../uploads/payments');
+      if (!fs.existsSync(uploadPath)) {
+        fs.mkdirSync(uploadPath, { recursive: true });
+      }
+      cb(null, uploadPath);
+    } catch (error) {
+      cb(error as Error, '');
+    }
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now();
+    const ext = path.extname(file.originalname);
+    cb(null, `payment+${uniqueSuffix}${ext}`);
+  }
+});
+const uploadPayment = multer({ storage: paymentStorage });
+
 router.use(verifyAuth);
 
 /**
@@ -69,6 +112,28 @@ router.patch(
   '/status',
   validate({ body: StudentSchema.updateStatus }),
   studentController.updateStatus
+);
+
+/**
+ * @route GET /api/students/payment
+ * @desc Retrieves student's payment record if submitted.
+ * @access Private (student)
+ */
+router.get(
+  '/payment',
+  studentController.getPayment
+);
+
+/**
+ * @route POST /api/students/payment
+ * @desc Submits KBZPay/WavePay payment receipt screenshot and details.
+ * @access Private (student)
+ */
+router.post(
+  '/payment',
+  uploadPayment.single('receipt'),
+  validate({ body: StudentSchema.submitPayment }),
+  studentController.submitPayment
 );
 
 /**

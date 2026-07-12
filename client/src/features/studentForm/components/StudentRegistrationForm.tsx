@@ -11,6 +11,7 @@ import {
   ContactRows,
   SignatureSection,
 } from './FormRows';
+import { PhotoUpload } from './PhotoUpload';
 
 const td = 'border border-black px-2 py-1 text-sm align-middle';
 const tdLabel = `${td} text-center font-medium`;
@@ -18,15 +19,22 @@ const tdLabel = `${td} text-center font-medium`;
 interface StudentRegistrationFormProps {
   onSubmitSuccess: (data: unknown) => void;
   isSubmitting?: boolean;
+  photos?: any;
+  onPhotoUpload?: (documentType: string, e: React.ChangeEvent<HTMLInputElement>) => void;
+  uploadProgress?: Record<string, 'idle' | 'uploading' | 'error'>;
 }
 
 const StudentRegistrationFormContent = ({
   onSubmitSuccess,
   isSubmitting,
+  photos,
+  onPhotoUpload,
+  uploadProgress,
 }: StudentRegistrationFormProps) => {
   const {
     onSubmit,
     formError,
+    setFormError,
     isEntranceLoading,
     isEntranceError,
   } = useStudentFormContext();
@@ -77,7 +85,17 @@ const StudentRegistrationFormContent = ({
   }
 
   return (
-    <form onSubmit={(e) => onSubmit(e, onSubmitSuccess)} className='font-myanmar'>
+    <form
+      onSubmit={(e) => {
+        if (!photos?.passportPhoto) {
+          e.preventDefault();
+          setFormError('Passport ဓာတ်ပုံ တင်ရန် လိုအပ်ပါသည်။ ❌');
+          return;
+        }
+        onSubmit(e, onSubmitSuccess);
+      }}
+      className='font-myanmar'
+    >
       {/* ── outer card ─────────────────────────────────────────────── */}
       <div
         className='border border-gray-400 rounded-lg bg-white p-5 mx-auto'
@@ -95,8 +113,21 @@ const StudentRegistrationFormContent = ({
         </h3>
 
         {/* ── Top section: Enrollment table ── */}
-        <div className='mb-4'>
-          <EnrollmentSection />
+        <div className='mb-6 flex items-start gap-8'>
+          <div className='flex-shrink-0'>
+            <PhotoUpload
+              label='Passport ဓာတ်ပုံ တင်ရန်'
+              preview={photos?.passportPhoto ? `/${photos.passportPhoto}` : ''}
+              onChange={(e) => onPhotoUpload?.('passportPhoto', e)}
+              isUploading={uploadProgress?.passportPhoto === 'uploading'}
+              isError={uploadProgress?.passportPhoto === 'error'}
+              width={120}
+              height={160}
+            />
+          </div>
+          <div className='flex-1'>
+            <EnrollmentSection width='400px' />
+          </div>
         </div>
 
         {/* ── Error banner ────────────────────────────────────────── */}

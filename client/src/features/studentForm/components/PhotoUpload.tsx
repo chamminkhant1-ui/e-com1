@@ -9,6 +9,8 @@ interface PhotoUploadProps {
   /** Box dimensions (px) */
   width?: number;
   height?: number;
+  isUploading?: boolean;
+  isError?: boolean;
 }
 
 export const PhotoUpload = ({
@@ -17,12 +19,23 @@ export const PhotoUpload = ({
   onChange,
   width = 120,
   height = 160,
+  isUploading = false,
+  isError = false,
 }: PhotoUploadProps) => (
   <label
-    className='flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors rounded-lg'
+    className={`flex flex-col items-center justify-center cursor-pointer border-2 border-dashed transition-colors rounded-lg relative overflow-hidden ${
+      isError
+        ? 'border-red-400 bg-red-50 hover:bg-red-100'
+        : 'border-gray-400 bg-gray-50 hover:bg-gray-100'
+    }`}
     style={{ width, height }}
   >
-    {preview ? (
+    {isUploading ? (
+      <div className='flex flex-col items-center gap-2 p-2 text-center'>
+        <div className='w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin' />
+        <span className='text-[10px] text-gray-500 font-semibold'>တင်သွင်းနေသည်...</span>
+      </div>
+    ) : preview ? (
       <img
         src={preview}
         alt={label}
@@ -54,6 +67,7 @@ export const PhotoUpload = ({
       accept='image/*'
       onChange={onChange}
       className='hidden'
+      disabled={isUploading}
     />
   </label>
 );

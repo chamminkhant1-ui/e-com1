@@ -34,3 +34,26 @@ export const updateStudentStatus = async (status: string): Promise<ApiResponse<a
   const res = await api.patch<ApiResponse<any>>('/students/status', { status });
   return res.data;
 };
+
+export const submitStudentPayment = async (
+  payerName: string,
+  transactionCode: string,
+  file: File
+): Promise<ApiResponse<any>> => {
+  const formData = new FormData();
+  formData.append('payerName', payerName);
+  formData.append('transactionCode', transactionCode);
+  formData.append('receipt', file);
+
+  const res = await api.post<ApiResponse<any>>('/students/payment', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return res.data;
+};
+
+export const getStudentPayment = async (): Promise<ApiResponse<any>> => {
+  const res = await api.get<ApiResponse<any>>('/students/payment');
+  return res.data;
+};

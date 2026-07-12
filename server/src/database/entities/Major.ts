@@ -1,10 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryColumn, Column } from 'typeorm';
 import type { InstitutionType } from './types';
 
 @Entity({ name: 'majors' })
 export class Major {
-  @PrimaryGeneratedColumn({ name: 'major_id' })
-  majorId!: number;
+  @PrimaryColumn({ name: 'major_code', length: 50 })
+  majorCode!: string;
 
   @Column({ length: 255, name: 'major_name_mm', unique: true })
   majorNameMm!: string;
