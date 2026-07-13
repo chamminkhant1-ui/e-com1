@@ -36,6 +36,7 @@ export class EntranceService {
         'fatherNameMm',
         'nrcNumber',
         'institution',
+        'majorCode',
         'totalScore',
         'subjectGroupScore',
         'applicationNo',
@@ -54,6 +55,7 @@ export class EntranceService {
       fatherNameMm: entrance.fatherNameMm,
       nrcNumber: entrance.nrcNumber,
       institution: entrance.institution as 'computer' | 'technology',
+      majorCode: entrance.majorCode,
       totalScore: Number(entrance.totalScore),
       subjectGroupScore: entrance.subjectGroupScore
         ? Number(entrance.subjectGroupScore)

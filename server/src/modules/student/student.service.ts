@@ -13,6 +13,7 @@ import { Semester } from '../../database/entities/Semester';
 import { Major } from '../../database/entities/Major';
 import { SemesterRegistration } from '../../database/entities/SemesterRegistration';
 import { Payment } from '../../database/entities/Payment';
+import { EntranceRegistration } from '../../database/entities/EntranceRegistration';
 import AppError from '../../common/utils/AppError';
 import type { StudentProfileInput, UpdateStatusInput } from './student.schema';
 
@@ -188,12 +189,18 @@ export class StudentService {
       const semesterRepo = manager.getRepository(Semester);
       const firstSemester = await semesterRepo.findOne({ where: { numericalLevel: 1 } });
 
-      // 3. Get CST major
-      const majorRepo = manager.getRepository(Major);
-      const cstMajor = await majorRepo.findOne({ where: { majorCode: 'CST' } });
+      // 3. Get student major code based on entrance registration
+      const entranceRepo = manager.getRepository(EntranceRegistration);
+      const entrance = account?.entranceId
+        ? await entranceRepo.findOne({ where: { entranceId: account.entranceId } })
+        : null;
+      const studentMajorCode = entrance?.majorCode || 'CST';
 
-      if (!activeYear || !firstSemester || !cstMajor) {
-        throw AppError.badRequest('ကျောင်းအပ်နှံရန် semester ဖွင့်လှစ်ထားခြင်း မရှိသေးပါ။');
+      const majorRepo = manager.getRepository(Major);
+      const major = await majorRepo.findOne({ where: { majorCode: studentMajorCode } });
+
+      if (!activeYear || !firstSemester || !major) {
+        throw AppError.badRequest('ကျောင်းအပ်နှံရန် semester သို့မဟုတ် major ဖွင့်လှစ်ထားခြင်း မရှိသေးပါ။');
       }
 
       // 4. Create or get SemesterRegistration
@@ -211,7 +218,7 @@ export class StudentService {
           studentId: accountId,
           academicYearId: activeYear.academicYearId,
           semesterId: firstSemester.semesterId,
-          majorCode: 'CST',
+          majorCode: studentMajorCode,
         });
         await registrationRepo.save(registration);
       }

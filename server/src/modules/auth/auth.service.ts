@@ -72,6 +72,7 @@ export class AuthService extends BaseService<Account> {
         'matricExamRollNo',
         'institution',
         'totalScore',
+        'majorCode',
       ],
     });
 
@@ -90,6 +91,7 @@ export class AuthService extends BaseService<Account> {
       matricExamRollNo: entrance.matricExamRollNo,
       institution: entrance.institution,
       totalScore: Number(entrance.totalScore),
+      majorCode: entrance.majorCode,
     };
   }
 

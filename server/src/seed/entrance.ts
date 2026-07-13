@@ -58,10 +58,12 @@ async function main() {
   const entities: EntranceRegistration[] = dataRows.map((r) => {
     const row = r as unknown[];
     const institution = mapInstitution(String(row[2] ?? ''));
+    const majorCode = institution === 'technology' ? 'CE' : 'CST';
 
     return Object.assign(new EntranceRegistration(), {
       examYear: String(row[1] ?? '').trim(),
       institution,
+      majorCode,
       matricExamRollNo: String(row[3] ?? '').trim(),
       applicantNameMm: String(row[4] ?? '').trim(),
       fatherNameMm: String(row[5] ?? '').trim(),

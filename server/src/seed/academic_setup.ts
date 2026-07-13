@@ -17,6 +17,7 @@ async function main() {
     { majorCode: 'CST', majorNameMm: 'ကွန်ပျူတာသိပ္ပံနှင့်နည်းပညာ', majorNameEn: 'Computer Science and Technology (CST)', institution: 'computer' as const },
     { majorCode: 'CT', majorNameMm: 'ကွန်ပျူတာနည်းပညာ', majorNameEn: 'Computer Technology (CT)', institution: 'computer' as const },
     { majorCode: 'CS', majorNameMm: 'ကွန်ပျူတာသိပ္ပံ', majorNameEn: 'Computer Science (CS)', institution: 'computer' as const },
+    { majorCode: 'CE', majorNameMm: 'မြို့ပြအင်ဂျင်နီယာ', majorNameEn: 'Civil Engineering (CE)', institution: 'technology' as const },
   ];
 
   for (const m of majors) {

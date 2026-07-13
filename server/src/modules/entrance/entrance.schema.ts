@@ -12,6 +12,7 @@ export const EntranceDtoSchema = z.object({
   fatherNameMm: z.string(),
   nrcNumber: z.string(),
   institution: z.enum(['computer', 'technology']),
+  majorCode: z.string().nullable().optional(),
   totalScore: z.number(),
   subjectGroupScore: z.number().nullable().optional(),
   applicationNo: z.string(),

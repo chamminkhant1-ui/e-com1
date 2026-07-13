@@ -141,6 +141,7 @@ export type EntranceMatchDto = {
   matricExamRollNo: string;
   institution: 'computer' | 'technology';
   totalScore: number;
+  majorCode?: string;
 };
 
 export { buildExamRollNo };

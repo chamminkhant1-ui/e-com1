@@ -6,6 +6,9 @@ import type { User } from '@/types/auth';
  * Kept generic here: every role lands on /dashboard. Introduce role- or
  * profile-specific paths later as you build out those routes.
  */
-export function getAuthenticatedHomePath(_user: User): string {
-  return '/dashboard';
+export function getAuthenticatedHomePath(user: User): string {
+  if (user.role === 'student') {
+    return '/dashboard';
+  }
+  return '/admin/dashboard';
 }

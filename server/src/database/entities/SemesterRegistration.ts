@@ -18,11 +18,7 @@ import { Payment } from './Payment';
 
 @Entity({ name: 'semester_registrations' })
 @Unique(['studentId', 'academicYearId', 'semesterId'])
-@Index('idx_sem_reg_composite', [
-  'academicYearId',
-  'semesterId',
-  'majorCode',
-])
+@Index('idx_sem_reg_composite', ['academicYearId', 'semesterId', 'majorCode'])
 export class SemesterRegistration {
   @PrimaryGeneratedColumn('uuid', { name: 'registration_id' })
   registrationId!: string;
@@ -79,7 +75,6 @@ export class SemesterRegistration {
 
   @Column({ type: 'text', nullable: true })
   remarks?: string;
-
 
   @OneToOne(() => Payment, (payment) => payment.registration)
   payment?: Payment;

@@ -39,6 +39,9 @@ export class EntranceRegistration {
   @Column({ length: 100, name: 'nrc_number', unique: true })
   nrcNumber!: string;
 
+  @Column({ length: 50, name: 'major_code', nullable: true })
+  majorCode?: string;
+
   @Column({
     type: 'decimal',
     precision: 5,

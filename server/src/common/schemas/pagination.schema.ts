@@ -18,10 +18,17 @@ export const PaginationQuerySchema = z.object({
     .default('10')
     .transform((val) => {
       const num = Number(val);
-      // Ensure it's between 1 and a safe maximum limit (e.g., 50)
       const safeNum = isNaN(num) || num < 1 ? 10 : num;
-      return Math.min(safeNum, 50);
+      return Math.min(safeNum, 100);
     }),
 });
 
 export type PaginationQuery = z.infer<typeof PaginationQuerySchema>;
+
+export const TableQuerySchema = PaginationQuerySchema.extend({
+  search: z.string().optional().default(''),
+  sortBy: z.string().optional().default('createdAt'),
+  sortOrder: z.enum(['ASC', 'DESC']).optional().default('DESC'),
+});
+
+export type TableQuery = z.infer<typeof TableQuerySchema>;
